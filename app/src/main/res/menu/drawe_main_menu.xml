@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <group android:checkableBehavior="single">
+        <item android:title="@string/my_files"
+            android:id="@+id/id_my_files"
+            android:icon="@drawable/ic_my_files"/>
+        <item android:title="@string/all_files"
+            android:id="@+id/id_all_files"
+            android:icon="@drawable/ic_my_files"/>
+    </group>
+    <item android:title="@string/account">
+<menu>
+    <item android:title="@string/sing_up"
+        android:id="@+id/id_sing_up"
+        android:icon="@drawable/ic_sing_up"/>
+    <item android:title="@string/sign_in"
+        android:id="@+id/id_sing_in"
+        android:icon="@drawable/ic_sing_in"/>
+    <item android:title="@string/sing_out"
+        android:id="@+id/id_sing_out"
+        android:icon="@drawable/ic_sing_out"/>
+</menu>
+    </item>
+
+</menu>
