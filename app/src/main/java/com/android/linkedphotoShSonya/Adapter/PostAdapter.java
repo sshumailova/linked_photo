@@ -107,6 +107,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 public void onClick(View view) {
                     Intent i=new Intent(context, EditActivity.class);
                     i.putExtra(MyConstants.IMAGE_ID,newPost.getImageId());
+                    i.putExtra(MyConstants.IMAGE_ID2,newPost.getImageId2());
+                    i.putExtra(MyConstants.IMAGE_ID3,newPost.getImageId3());
                     i.putExtra(MyConstants.DISC_ID,newPost.getDisc());
                     i.putExtra(MyConstants.KEY,newPost.getKey());
                     i.putExtra(MyConstants.UID,newPost.getUid());

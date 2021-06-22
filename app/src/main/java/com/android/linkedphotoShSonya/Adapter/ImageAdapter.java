@@ -1,6 +1,8 @@
 package com.android.linkedphotoShSonya.Adapter;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,38 +14,52 @@ import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.utils.ImagesManager;
+import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImageAdapter extends PagerAdapter {
+public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     private LayoutInflater inflater;
-    private Context context;
+    private Activity context;
     private List<String> imagesUries;
+    private List<Bitmap> bmList;
+    private OnBitMapLoaded onBitMapLoaded;
+    private ImagesManager imagesManager;
+    private boolean isFireBaseUri = false;
 
-    public ImageAdapter(Context context) {
+
+    public ImageAdapter(Activity context) {
         this.context = context;
-        inflater=LayoutInflater.from(context);
-        imagesUries= new ArrayList<>();
+        imagesManager=new ImagesManager(context,this);
+        inflater = LayoutInflater.from(context);
+        imagesUries = new ArrayList<>();
+        bmList = new ArrayList<>();
     }
 
     @Override
     public int getCount() {
-        return imagesUries.size();
+        int size;
+        if (isFireBaseUri) {
+            size = imagesUries.size();
+        } else {
+            size = bmList.size();
+        }
+        return size;
     }
 
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
-        View view=inflater.inflate(R.layout.pager_item,container,false);
-        ImageView imItem=view.findViewById(R.id.imageViewPager);
-        String uri=imagesUries.get(position);
-        if(uri.substring(0,4).equals("http")){
+        View view = inflater.inflate(R.layout.pager_item, container, false);
+        ImageView imItem = view.findViewById(R.id.imageViewPager);
+        if(isFireBaseUri){
+            String uri = imagesUries.get(position);
             Picasso.get().load(uri).into(imItem);
-        }
-        else {
-            imItem.setImageURI(Uri.parse(imagesUries.get(position)));
+        } else {
+            imItem.setImageBitmap(bmList.get(position));
         }
 
         container.addView(view);
@@ -52,21 +68,43 @@ public class ImageAdapter extends PagerAdapter {
 
     @Override
     public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
-        return view==object;
+        return view == object;
     }
 
     @Override
-    public int getItemPosition(@NonNull  Object object) {
+    public int getItemPosition(@NonNull Object object) {
         return POSITION_NONE;
     }
 
     @Override
-    public void destroyItem(@NonNull  ViewGroup container, int position, @NonNull  Object object) {
-       container.removeView((LinearLayout)object);
+    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        container.removeView((LinearLayout) object);
     }
-    public void updateImages(List<String> images){
-        imagesUries.clear();
-        imagesUries.addAll(images);
-        notifyDataSetChanged();
+
+    public void updateImages(List<String> images) {
+       if(isFireBaseUri) {
+           imagesUries.clear();
+           imagesUries.addAll(images);
+           notifyDataSetChanged();
+       }
+       else {
+           imagesManager.resizeMultiLargeImages(images);
+       }
+}
+    @Override
+    public void onBitmapLoadedd(final List<Bitmap> bitmap) {
+        context.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                bmList.clear();
+                bmList.addAll(bitmap);
+                notifyDataSetChanged();
+            }
+        });
+
+    }
+
+    public void setFireBaseUri(boolean fireBaseUri) {
+        isFireBaseUri = fireBaseUri;
     }
 }

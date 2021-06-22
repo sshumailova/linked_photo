@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Linked Photo</string>
+    <string name="my_files">Мои файлы</string>
+    <string name="all_files">Лента</string>
+    <string name="sing_up">Регистрация</string>
+    <string name="sign_in">Вход</string>
+    <string name="sing_out">Выход</string>
+    <string name="account">Аккаунт</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="signup_button">Зарегистрироваться</string>
+    <string name="signin_button">Войти</string>
+    <string name="sign_in_our_sign_up">Войдите или зарегистрируйтесь! </string>
+    <!--EditActivity-->
+    <string name="edit_ac_Title">Подпись </string>
+
+    <string name="bbbhbh">bbbhbh</string>
+    <!--PostAdapter-->
+    <string name="delte_title">Удалить пост</string>
+    <string name="delte_message">Вы действительно хотете удалить пост?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="item_deleted">Пост удален!</string>
+    <!--ChooseImageActivity-->
+    <string name="main_image">Главное фото</string>
+    <string name="image2">Фото 2</string>
+    <string name="image3">Фото 3</string>
+    <!--MainActivity-->
+
+    <string name="alert">Внимание!</string>
+    <string name="email_not_verified">Вы не подтвердили ваш аккаунт - проверьте вашу почту и подтвердите ваш аккаунт!  </string>
+    <string name="email_verified_send">Вам на почту было отправлено сообщение, пожалуйста перейдите по ссылке в  сообщении для подтверждения аккаунта!  И зайдите еще раз в ваш аккаунт!</string>
+    <string name="google_sing_up">Регистрация через Google</string>
+    <string name="google_sign_in">Вход через Google</string>
+    <string name="send_email_again">Отправить снова!</string>
+    <string name="sign_link_message">У вас уже есть аккаунт, войдите в ваш аккаунт для регистрации данного email адреса!</string>
+    <string name="account_linked">Вы успешно прикрепли свой email адресс к аккаунту!</string>
+    <string name="forget_password">Вы забыли пароль?</string>
+    <string name="send_recet_password">Отправить</string>
+    <string name="forget_password_message">Для восстановления введите ваш email адресс</string>
+    <string name="email_is_empty">Вы не указали ваш email!</string>
+    <string name="email_is_send">Инструкции по восстановлению отправлены Вам на почту!</string>
+</resources>

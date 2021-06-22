@@ -1,29 +1,44 @@
 <resources>
     <string name="app_name">Linked Photo</string>
-    <string name="my_files">Мои файлы</string>
-    <string name="all_files">Лента</string>
-    <string name="sing_up">Регистрация</string>
-    <string name="sign_in">Вход</string>
-    <string name="sing_out">Выход</string>
-    <string name="account">Аккаунт</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="signup_button">Зарегистрироваться</string>
-    <string name="signin_button">Войти</string>
-    <string name="sign_in_our_sign_up">Войдите или зарегистрируйтесь! </string>
+    <string name="signup_button">Sign Up</string>
+    <string name="sign_in_our_sign_up">"Log In or Sign Up! "</string>
     <!--EditActivity-->
-    <string name="edit_ac_Title">Подпись </string>
-    <string name="toggle_open">Open </string>
-    <string name="toggle_close">Close </string>
+    <string name="toggle_open" translatable="false">Open </string>
+    <string name="toggle_close" translatable="false">Close </string>
     <string name="bbbhbh">bbbhbh</string>
     <!--PostAdapter-->
-    <string name="delte_title">Удалить пост</string>
-    <string name="delte_message">Вы действительно хотете удалить пост?</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
-    <string name="item_deleted">Пост удален!</string>
+    <string name="delte_message">Delete this  photo?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <!--ChooseImageActivity-->
-    <string name="main_image">Главное фото</string>
-    <string name="image2">Фото 2</string>
-    <string name="image3">Фото 3</string>
+    <string name="image3">Photo 3</string>
+    <!--MainActivity-->
+    <string name="ok" translatable="false">OK</string>
+    <string name="email_not_verified">You have not verified your account - check you email and to verify your email address! And Sign in again.</string>
+    <string name="email_verified_send">Check you email and follow link in message to verify your email address! And Sign in again.</string>
+    <string name="delte_title">Delete post</string>
+    <string name="image2">Photo 2</string>
+    <string name="edit_ac_Title">Title</string>
+    <string name="sign_in">Log In</string>
+    <string name="sing_out">Log Out</string>
+    <string name="account">Account</string>
+    <string name="signin_button">Log I</string>
+    <string name="alert">Attention!</string>
+    <string name="sing_up">Sign Up</string>
+    <string name="my_files">My files</string>
+    <string name="all_files">All photos</string>
+    <string name="item_deleted">Item is deleted!</string>
+    <string name="main_image">Photo 1</string>
+    <string name="google_sing_up">" Google Sign Up"</string>
+    <string name="google_sign_in">Google Sign In</string>
+    <string name="send_email_again">Send again!</string>
+    <string name="sign_link_message">You already have account , please log into your account to register this email address!</string>
+    <string name="account_linked">You attached your email adress in your account !</string>
+    <string name="forget_password">Are you forget password?</string>
+    <string name="send_recet_password">Send</string>
+    <string name="forget_password_message">To restore, please enter your  email address</string>
+    <string name="email_is_empty">You have not specified your email!</string>
+    <string name="email_is_send">Recovery instructions have been sent to your email!</string>
 </resources>

@@ -16,8 +16,9 @@
         android:id="@+id/nav_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
-        app:menu="@menu/drawe_main_menu"
         android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header"/>
+        android:background="#F8EFEF"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/drawe_main_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>
