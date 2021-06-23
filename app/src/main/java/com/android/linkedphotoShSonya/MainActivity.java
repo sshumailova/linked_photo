@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void init() {
         setOnItemClickCustom();
         rcView = findViewById(R.id.rcView);
-        rcView.setLayoutManager(new GridLayoutManager(this, 2));//тут можно указать как будут выглядеть элементы в recyclerView
+        rcView.setLayoutManager(new GridLayoutManager(this, 1));//тут можно указать как будут выглядеть элементы в recyclerView обычно делают LinearLayoutManager
         List<NewPost> arrayPost = new ArrayList<>();
         postAdapter = new PostAdapter(arrayPost, this, onItemClickCustom);
 

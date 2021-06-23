@@ -16,6 +16,9 @@ import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
+
+import com.fxn.pix.Options;
+import com.fxn.pix.Pix;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -57,22 +60,24 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+        if (resultCode == RESULT_OK && data != null ) {
+            ArrayList<String> returnValue = data.getStringArrayListExtra(Pix.IMAGE_RESULTS);
+            if(returnValue==null){return;}
             switch (requestCode) {
                 case 1:
-                    uris[0] = data.getData().toString();
+                    uris[0] =returnValue.get(0);
                     isImagesLoaded=false;
                     imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
                     //код проверяет большая картнка или нет - можно так же сдлеать(НУЖНО) на две другие
 
                     break;
                 case 2:
-                    uris[1] = data.getData().toString();
+                    uris[1] = returnValue.get(0);
                     isImagesLoaded=false;
                     imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
                     break;
                 case 3:
-                    uris[2] = data.getData().toString();
+                    uris[2] = returnValue.get(0);
                     isImagesLoaded=false;
                     imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
                     break;
@@ -101,7 +106,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
     public void MainImage(View view) {
         if(!isImagesLoaded){
-            Toast.makeText(this, "Loading images, please wait!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
         }
         getImage(1);
@@ -109,7 +114,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
     public void onClickImage2(View view) {
         if(!isImagesLoaded){
-            Toast.makeText(this, "Loading images, please wait!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,  R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
         }
         getImage(2);
@@ -117,7 +122,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
     public void onClickImage3(View view) {
         if(!isImagesLoaded){
-            Toast.makeText(this, "Loading images, please wait!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,  R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
         }
         getImage(3);
@@ -125,10 +130,17 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
 
     private void getImage(int index) {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-        startActivityForResult(intent, index);
+//        Intent intent = new Intent();
+//        intent.setType("image/*");
+//        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+//        startActivityForResult(intent, index);
+        Options options = Options.init()
+                .setRequestCode(index)                                          //Request code for activity results
+                .setCount(1)                                                   //Number of images to restict selection count
+                .setFrontfacing(false)
+                .setScreenOrientation(Options.SCREEN_ORIENTATION_PORTRAIT)    ; //Orientaion//Custom Path For media Storage
+
+        Pix.start(ChooseImageActiviry.this, options);
     }
 
     public void onClickBack(View view) {

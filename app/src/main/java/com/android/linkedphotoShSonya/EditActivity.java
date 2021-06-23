@@ -24,6 +24,7 @@ import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
+import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
 import com.google.android.gms.auth.api.signin.internal.Storage;
 import com.google.android.gms.common.images.ImageManager;
 import com.google.android.gms.tasks.Continuation;
@@ -41,9 +42,10 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class EditActivity extends AppCompatActivity {
+public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private ImageView imItem;
     private StorageReference mstorageRef;
     private String[] uploadUri = new String[3];
@@ -66,7 +68,10 @@ public class EditActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
     private TextView tvImagesCounter;
     private ViewPager vp;
+    private List<Bitmap> bitMapArrayList;
     private final int MAX_UPOLOAD_IMAGE_SIZE = 1920;
+    private ImagesManager imagesManager;
+    private boolean isImagesLoaded = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,8 +82,10 @@ public class EditActivity extends AppCompatActivity {
     }
 
     private void init() {
+        imagesManager = new ImagesManager(this, this);
         tvImagesCounter = findViewById(R.id.tvImagedCounter);
         imagesUris = new ArrayList<>();
+        bitMapArrayList = new ArrayList<>();
         vp = findViewById(R.id.view_pager);
         imageAdapter = new ImageAdapter(this);
         vp.setAdapter(imageAdapter);
@@ -133,11 +140,13 @@ public class EditActivity extends AppCompatActivity {
         uploadUri[0] = i.getStringExtra(MyConstants.IMAGE_ID);
         uploadUri[1] = i.getStringExtra(MyConstants.IMAGE_ID2);
         uploadUri[2] = i.getStringExtra(MyConstants.IMAGE_ID3);
+
         for (String s : uploadUri) {
             if (!s.equals("empty")) {
                 imagesUris.add(s);
             }
         }
+        isImagesLoaded = true;
         imageAdapter.updateImages(imagesUris);
         String dataText;
         if (imagesUris.size() > 0) {
@@ -153,15 +162,9 @@ public class EditActivity extends AppCompatActivity {
     private void uploadImage() {
         if (load_image_coat < uploadUri.length) {
             if (!uploadUri[load_image_coat].equals("empty")) {
-                Bitmap bitmap = null;
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(uploadUri[load_image_coat]));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Bitmap bitmap = bitMapArrayList.get(load_image_coat);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 assert bitmap != null;
-                bitmap = ImagesManager.resizeImage(bitmap, MAX_UPOLOAD_IMAGE_SIZE);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 20, out);
                 byte[] byteArray = out.toByteArray();
                 final StorageReference mRef = mstorageRef.child(System.currentTimeMillis() + "_image");
@@ -208,7 +211,10 @@ public class EditActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 image_update = true;
                 imagesUris.clear();
-                for (String s : getUrisForChoose(data)) {
+                String[] tempUriArray = getUrisForChoose(data);
+                isImagesLoaded=false;
+                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray));
+                for (String s : tempUriArray) {
                     if (!s.equals("empty")) {
                         imagesUris.add(s);
                     }
@@ -276,16 +282,21 @@ public class EditActivity extends AppCompatActivity {
     }
 
     public void onClickSavePost(View view) {
-        pd.show();
-        if (!edit_state) {
-            uploadImage();
+        if (isImagesLoaded) {
+            pd.show();
+            if (!edit_state) {
+                uploadImage();
 
-        } else {
-            if (image_update) {
-                uploadUpdateImage();
             } else {
-                updatePost();
+                if (image_update) {
+                    uploadUpdateImage();
+                } else {
+                    updatePost();
+                }
             }
+        }
+        else {
+            Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -322,11 +333,9 @@ public class EditActivity extends AppCompatActivity {
             }
 // второе условие :если ссылка на старой позиции НЕ равна ссылке на новой и  Не ПКСТОТА новая (изменилось)
             else if (!uploadUri[load_image_coat].equals(uploadNewUri[load_image_coat]) && !uploadNewUri[load_image_coat].equals("empty")) {
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(uploadNewUri[load_image_coat]));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
+                    bitmap = bitMapArrayList.get(load_image_coat);
+
             }
             // удалить старую ссылку и картинку
             else if (!uploadUri[load_image_coat].equals("empty") && uploadNewUri[load_image_coat].equals("empty")) {
@@ -395,6 +404,19 @@ public class EditActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         pd.dismiss();
+    }
+
+    @Override
+    public void onBitmapLoadedd(List<Bitmap> bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                bitMapArrayList.clear();
+                bitMapArrayList.addAll(bitmap);
+                isImagesLoaded = true;
+            }
+        });
+
     }
 }
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,30 +25,22 @@ import java.util.List;
 public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     private LayoutInflater inflater;
     private Activity context;
-    private List<String> imagesUries;
     private List<Bitmap> bmList;
     private OnBitMapLoaded onBitMapLoaded;
     private ImagesManager imagesManager;
-    private boolean isFireBaseUri = false;
+
 
 
     public ImageAdapter(Activity context) {
         this.context = context;
-        imagesManager=new ImagesManager(context,this);
+        imagesManager = new ImagesManager(context, this);
         inflater = LayoutInflater.from(context);
-        imagesUries = new ArrayList<>();
         bmList = new ArrayList<>();
     }
 
     @Override
     public int getCount() {
-        int size;
-        if (isFireBaseUri) {
-            size = imagesUries.size();
-        } else {
-            size = bmList.size();
-        }
-        return size;
+        return bmList.size();
     }
 
     @NonNull
@@ -55,13 +48,7 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         View view = inflater.inflate(R.layout.pager_item, container, false);
         ImageView imItem = view.findViewById(R.id.imageViewPager);
-        if(isFireBaseUri){
-            String uri = imagesUries.get(position);
-            Picasso.get().load(uri).into(imItem);
-        } else {
-            imItem.setImageBitmap(bmList.get(position));
-        }
-
+        imItem.setImageBitmap(bmList.get(position));
         container.addView(view);
         return view;
     }
@@ -82,17 +69,13 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     }
 
     public void updateImages(List<String> images) {
-       if(isFireBaseUri) {
-           imagesUries.clear();
-           imagesUries.addAll(images);
-           notifyDataSetChanged();
-       }
-       else {
-           imagesManager.resizeMultiLargeImages(images);
-       }
-}
+
+        imagesManager.resizeMultiLargeImages(images);
+        Log.d("MyLog", "Update" + images.get(0));
+    }
     @Override
     public void onBitmapLoadedd(final List<Bitmap> bitmap) {
+        Log.d("MyLog","OnBitmapLoadded"+bitmap.size());
         context.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -104,7 +87,4 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
 
     }
 
-    public void setFireBaseUri(boolean fireBaseUri) {
-        isFireBaseUri = fireBaseUri;
-    }
 }

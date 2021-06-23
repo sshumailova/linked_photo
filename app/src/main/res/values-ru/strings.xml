@@ -40,4 +40,5 @@
     <string name="forget_password_message">Для восстановления введите ваш email адресс</string>
     <string name="email_is_empty">Вы не указали ваш email!</string>
     <string name="email_is_send">Инструкции по восстановлению отправлены Вам на почту!</string>
+    <string name="images_loading">Изображения загружаются, пожалуйста подождите!</string>
 </resources>

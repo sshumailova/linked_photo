@@ -69,7 +69,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
                     imagesUris.add(s);
                 }
             }
-            imageAdapter.setFireBaseUri(true);
+
             imageAdapter.updateImages(imagesUris);
 
             String dataText;
