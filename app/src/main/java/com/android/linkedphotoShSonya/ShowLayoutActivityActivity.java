@@ -5,22 +5,23 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.utils.MyConstants;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShowLayoutActivityActivity extends AppCompatActivity {
-    private TextView tvDisc, tvTotalViews;
+    private TextView tvDisc, tvTotalViews, tvTotalLike;
     private ImageView imMAin;
     private List<String> imagesUris;
     private ImageAdapter imageAdapter;
     private TextView tvImagesCounter;
+    private int like;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +56,22 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
         tvImagesCounter = findViewById(R.id.tvImagedCounter2);
         tvDisc = findViewById(R.id.tvMain);
         tvTotalViews = findViewById(R.id.tvViews);
+        tvTotalLike=findViewById(R.id.tvLike);
         // imMAin=findViewById(R.id.imMain);
         if (getIntent() != null) {
             Intent i = getIntent();
-            tvDisc.setText(i.getStringExtra(MyConstants.DISC_ID));
-            tvTotalViews.setText(i.getStringExtra(MyConstants.TOTAL_VIEWS));
+            NewPost newPost = (NewPost) i.getSerializableExtra(MyConstants.New_POST_INTENT);
+            if (newPost == null) {
+                return;
+            }
+            tvDisc.setText(newPost.getDisc());
+            tvTotalViews.setText(newPost.getTotal_views());
+            //like=newPost.getLike(); КОЛИЧЕСТВО ЛАЙКОВ
+            //tvTotalLike.setText(newPost.getLike());
             String[] images = new String[3];
-            images[0] = i.getStringExtra(MyConstants.IMAGE_ID).toString();
-            images[1] = i.getStringExtra(MyConstants.IMAGE_ID2);
-            images[2] = i.getStringExtra(MyConstants.IMAGE_ID3);
+            images[0] = newPost.getImageId();
+            images[1] = newPost.getImageId2();
+            images[2] = newPost.getImageId3();
             for (String s : images) {
                 if (!s.equals("empty")) {
                     imagesUris.add(s);
@@ -82,5 +90,10 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
             // Picasso.get().load(i.getStringExtra(MyConstants.IMAGE_ID)).into(imMAin);
 
         }
+    }
+
+    public void Like(View view) {
+       // like++;
+       // tvTotalLike.setText(like);
     }
 }

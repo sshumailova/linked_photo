@@ -11,7 +11,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -106,16 +105,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 @Override
                 public void onClick(View view) {
                     Intent i=new Intent(context, EditActivity.class);
-                    i.putExtra(MyConstants.IMAGE_ID,newPost.getImageId());
-                    i.putExtra(MyConstants.IMAGE_ID2,newPost.getImageId2());
-                    i.putExtra(MyConstants.IMAGE_ID3,newPost.getImageId3());
-                    i.putExtra(MyConstants.DISC_ID,newPost.getDisc());
-                    i.putExtra(MyConstants.KEY,newPost.getKey());
-                    i.putExtra(MyConstants.UID,newPost.getUid());
-                    i.putExtra(MyConstants.TIME,newPost.getTime());
-                    i.putExtra(MyConstants.CAT,newPost.getCat());
+                  i.putExtra(MyConstants.New_POST_INTENT,newPost);
+//                    i.putExtra(MyConstants.IMAGE_ID2,newPost.getImageId2());
+//                    i.putExtra(MyConstants.IMAGE_ID3,newPost.getImageId3());
+//                    i.putExtra(MyConstants.DISC_ID,newPost.getDisc());
+//                    i.putExtra(MyConstants.KEY,newPost.getKey());
+//                    i.putExtra(MyConstants.UID,newPost.getUid());
+//                    i.putExtra(MyConstants.TIME,newPost.getTime());
+//                    i.putExtra(MyConstants.CAT,newPost.getCat());
                     i.putExtra(MyConstants.EDIT_STATE,true);
-                    i.putExtra(MyConstants.TOTAL_VIEWS,newPost.getTotal_views());
+
                     context.startActivity(i);
 
                 }
@@ -129,14 +128,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             dbManager.updateTotalViews(newPost);
             //onItemClickCustom.onItemSelected(getAdapterPosition());
             Intent i=new Intent(context, ShowLayoutActivityActivity.class);
-            i.putExtra(MyConstants.IMAGE_ID,newPost.getImageId());
-            i.putExtra(MyConstants.IMAGE_ID2,newPost.getImageId2());
-            i.putExtra(MyConstants.IMAGE_ID3,newPost.getImageId3());
-            i.putExtra(MyConstants.DISC_ID,newPost.getDisc());
-            i.putExtra(MyConstants.TIME,newPost.getTime());
-            i.putExtra(MyConstants.CAT,newPost.getCat());
+            i.putExtra(MyConstants.New_POST_INTENT,newPost);
             i.putExtra(MyConstants.EDIT_STATE,true);
-            i.putExtra(MyConstants.TOTAL_VIEWS,newPost.getTotal_views());
             context.startActivity(i);
             onItemClickCustom.onItemSelected(getAdapterPosition());
 

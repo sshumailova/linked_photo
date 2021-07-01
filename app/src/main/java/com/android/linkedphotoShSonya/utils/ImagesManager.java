@@ -3,6 +3,7 @@ package com.android.linkedphotoShSonya.utils;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.util.Log;
 
@@ -34,8 +35,13 @@ public class ImagesManager {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(uri,options);
+            if(getImageRotation(uri)==0){
             size[1] = options.outHeight;
-            size[0] = options.outWidth;
+            size[0] = options.outWidth;}
+            else {
+                size[0] = options.outHeight;
+                size[1] = options.outWidth;
+            }
         return size;
     }
 
@@ -44,8 +50,9 @@ public class ImagesManager {
         List<int[]> realSizeList = new ArrayList<>();
 
         for (int i = 0; i < uries.size(); i++) {
-            width = getImageSize(uries.get(i))[0];
-            height = getImageSize(uries.get(i))[1];
+            int[]sizes=getImageSize(uries.get(i));
+            width = sizes[0];
+            height = sizes[1];
             realSizeList.add(new int[]{width, height});
             Log.d("MyLog","Origin Image Size " + width);
             float imageRatio = (float) width / (float) height;
@@ -95,6 +102,22 @@ public class ImagesManager {
 
             }
         }).start();
+    }
+    private int getImageRotation(String imagePath){
+        int rotation=0;
+        File imageFile=new File(imagePath);
+        try {
+            ExifInterface exif=new ExifInterface(imageFile.getAbsolutePath());
+            int orientation=exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,ExifInterface.ORIENTATION_NORMAL);
+            if(ExifInterface.ORIENTATION_ROTATE_90==orientation||ExifInterface.ORIENTATION_ROTATE_270==orientation){
+                rotation=90;
+            }else {
+                rotation=0;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rotation;
     }
 
 }

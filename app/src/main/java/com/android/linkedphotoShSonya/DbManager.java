@@ -31,6 +31,7 @@ public class DbManager {
     private DataSender dataSender;
     private  FirebaseDatabase db;
     private FirebaseStorage fs;
+    private FirebaseAuth mAuth;
     private int cat_ads_counter=0;
     String text;
     private int deleteImageCounter=0;
@@ -41,19 +42,20 @@ public class DbManager {
         newPostList=new ArrayList<>();
         db = FirebaseDatabase.getInstance();
         fs=FirebaseStorage.getInstance();
+        mAuth=FirebaseAuth.getInstance();
     }
 
     public void getDataFromDb(String path) {
-//if(newPostList.size()>0){newPostList.clear();}
+if(mAuth.getUid()!=null){
         DatabaseReference dbRef = db.getReference(path);
-        mQuery = dbRef.orderByChild("post/time");
-readDataUpdate();
+        mQuery = dbRef.orderByChild("/post/time");
+readDataUpdate();}
     }
     public void getMyDataFromDb(String uid,String path) {
-        //int k=newPostList.size();
+
       if(newPostList.size()>0){newPostList.clear();}
         DatabaseReference dbRef = db.getReference(path);
-        mQuery = dbRef.orderByChild("post/uid").equalTo(uid);
+        mQuery = dbRef.orderByChild(mAuth.getUid()+"/post/uid").equalTo(uid);
         readMyAdsDataUpdate(uid);
         int k=newPostList.size();
     }
@@ -111,7 +113,9 @@ public void updateTotalViews(final  NewPost newPost){
             total_views=0;
         }
         total_views++;
-        dRef.child(newPost.getKey()).child("post/total_views").setValue(String.valueOf(total_views));
+        StatusItem statusItem=new StatusItem();
+        statusItem.totalViews=String.valueOf(total_views);
+        dRef.child(newPost.getKey()).child("status").setValue(statusItem);
 }
     public void readDataUpdate() {
         mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -119,10 +123,13 @@ public void updateTotalViews(final  NewPost newPost){
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(newPostList.size()>0){newPostList.clear();}
                                 for(DataSnapshot ds:snapshot.getChildren()){
-                    NewPost newPost=ds.child("post").getValue(NewPost.class);
+
+                    NewPost newPost=ds.getChildren().iterator().next().child("post").getValue(NewPost.class);
+                    StatusItem statusItem=ds.child("status").getValue(StatusItem.class);
+                    if(newPost!=null&&statusItem!=null){
+                    newPost.setTotal_views(statusItem.totalViews);}
                     newPostList.add(newPost);
 
-                    //Log.d("MyLog","Text: "+ newPost.getDisc());
                 }
 
                                 dataSender.onDataRecived(newPostList);
@@ -156,7 +163,7 @@ public void updateTotalViews(final  NewPost newPost){
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 for(DataSnapshot ds:snapshot.getChildren()){
-                    NewPost newPost=ds.child("post").getValue(NewPost.class);
+                    NewPost newPost=ds.child(mAuth.getUid()+"/post").getValue(NewPost.class);
                    // text=newPost.getDisc().toString();
                     newPostList.add(newPost);
 

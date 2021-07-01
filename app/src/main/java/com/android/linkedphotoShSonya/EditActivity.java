@@ -1,13 +1,10 @@
 package com.android.linkedphotoShSonya;
 
-import android.app.AppComponentFactory;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -25,22 +22,19 @@ import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
-import com.google.android.gms.auth.api.signin.internal.Storage;
-import com.google.android.gms.common.images.ImageManager;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +47,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private DatabaseReference dRef;
     private FirebaseAuth myAuth;
     private EditText edDisc;
-    private TextView total_views;
+    private TextView total_views, tvName,tvLike;
     private boolean edit_state = false;
     private String temp_cat = "";
     private String temp_uid = "";
@@ -114,7 +108,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         edDisc = findViewById(R.id.editDesc);
 
         total_views = findViewById(R.id.tvTotalViews);
-
+tvLike=findViewById(R.id.tvLike);
+tvName=findViewById(R.id.tvName);
         mstorageRef = FirebaseStorage.getInstance().getReference("Images");
 
     }
@@ -131,15 +126,19 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
     private void setDataAds(Intent i) {
         // Picasso.get().load(i.getStringExtra(MyConstants.IMAGE_ID)).into(imItem);
-        edDisc.setText(i.getStringExtra(MyConstants.DISC_ID));
-        temp_cat = i.getStringExtra(MyConstants.CAT);
-        temp_uid = i.getStringExtra(MyConstants.UID);
-        temp_time = i.getStringExtra(MyConstants.TIME);
-        temp_key = i.getStringExtra(MyConstants.KEY);
-        temp_total_views = i.getStringExtra(MyConstants.TOTAL_VIEWS);
-        uploadUri[0] = i.getStringExtra(MyConstants.IMAGE_ID);
-        uploadUri[1] = i.getStringExtra(MyConstants.IMAGE_ID2);
-        uploadUri[2] = i.getStringExtra(MyConstants.IMAGE_ID3);
+        NewPost newPost=(NewPost)i.getSerializableExtra(MyConstants.New_POST_INTENT);
+        if(newPost==null){
+            return;
+        }
+        edDisc.setText(newPost.getDisc());
+        temp_cat = newPost.getCat();
+        temp_uid = newPost.getUid();
+        temp_time =newPost.getTime();
+        temp_key = newPost.getKey();
+        temp_total_views = newPost.getTotal_views();
+        uploadUri[0] = newPost.getImageId();
+        uploadUri[1] = newPost.getImageId2();
+        uploadUri[2] = newPost.getImageId3();
 
         for (String s : uploadUri) {
             if (!s.equals("empty")) {
@@ -157,7 +156,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         tvImagesCounter.setText(dataText);
 
     }
-
 
     private void uploadImage() {
         if (load_image_coat < uploadUri.length) {
@@ -247,7 +245,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
     public void onClickImage(View view) {
         Intent intent = new Intent(EditActivity.this, ChooseImageActiviry.class);
-        intent.putExtra(MyConstants.IMAGE_ID, uploadUri[0]);
+        intent.putExtra(MyConstants.New_POST_INTENT, uploadUri[0]);
         intent.putExtra(MyConstants.IMAGE_ID2, uploadUri[1]);
         intent.putExtra(MyConstants.IMAGE_ID3, uploadUri[2]);
         startActivityForResult(intent, 15);
@@ -276,7 +274,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             post.setCat("notes");
             post.setTotal_views("0");
             if (key != null) {
-                dRef.child(key).child("post").setValue(post);
+                dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
             }
         }
     }
@@ -300,8 +298,9 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         }
 
     }
-
     private void updatePost() {
+        myAuth = FirebaseAuth.getInstance();
+        if (myAuth.getUid() != null) {
         dRef = FirebaseDatabase.getInstance().getReference(temp_cat);
         NewPost post = new NewPost();
         post.setImageId(uploadUri[0]);
@@ -313,13 +312,13 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
-        dRef.child(temp_key).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
+        dRef.child(temp_key).child(myAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
                 finish();
             }
-        });
+        });}
 
     }
 

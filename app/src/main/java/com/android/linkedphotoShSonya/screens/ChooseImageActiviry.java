@@ -5,13 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.android.linkedphotoShSonya.EditActivity;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
@@ -182,7 +180,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
     private void getMyIntent() {
         Intent i = getIntent();
         if (i != null) {
-            uris[0] = i.getStringExtra(MyConstants.IMAGE_ID);
+            uris[0] = i.getStringExtra(MyConstants.New_POST_INTENT);
             uris[1] = i.getStringExtra(MyConstants.IMAGE_ID2);
             uris[2] = i.getStringExtra(MyConstants.IMAGE_ID3);
             isImagesLoaded=false;

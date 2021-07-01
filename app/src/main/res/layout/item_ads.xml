@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tvName"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_alignParentStart="false"
@@ -15,6 +16,7 @@
         android:layout_margin="8dp"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="26dp"
+        android:background="@color/imageDbg"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -62,7 +64,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toEndOf="@+id/quantityLike"
+            app:layout_constraintStart_toEndOf="@+id/tvLike"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="1.0">
 
@@ -95,7 +97,7 @@
             app:srcCompat="@drawable/ic_cool" />
 
         <TextView
-            android:id="@+id/quantityLike"
+            android:id="@+id/tvLike"
             android:layout_width="12dp"
             android:layout_height="25dp"
             android:layout_marginStart="5dp"

@@ -3,7 +3,7 @@ package com.android.linkedphotoShSonya.utils;
 import com.android.linkedphotoShSonya.MainActivity;
 
 public class MyConstants {
-    public static final String IMAGE_ID ="im_id"+ MainActivity.class.getName();
+    public static final String New_POST_INTENT ="im_id"+ MainActivity.class.getName();
     public static final String IMAGE_ID2 ="im_id_2"+ MainActivity.class.getName();
     public static final String IMAGE_ID3 ="im_id_3"+ MainActivity.class.getName();
     public static final String DISC_ID ="disc_id"+ MainActivity.class.getName();

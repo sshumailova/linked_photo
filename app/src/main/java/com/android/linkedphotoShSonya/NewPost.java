@@ -1,6 +1,8 @@
 package com.android.linkedphotoShSonya;
 
-public class NewPost {
+import java.io.Serializable;
+
+public class NewPost implements Serializable {
     private String imageId;
     private String imageId2;
     private String imageId3;
@@ -9,6 +11,7 @@ public class NewPost {
 private String uid;
 private String time;
 private String cat;
+private String name;
 private String total_views;
 
     public String getImageId3() {
@@ -81,5 +84,13 @@ private String total_views;
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
