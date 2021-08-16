@@ -1,4 +1,4 @@
-package com.android.linkedphotoShSonya;
+package com.android.linkedphotoShSonya.db;
 
 import java.io.Serializable;
 
@@ -13,6 +13,8 @@ private String time;
 private String cat;
 private String name;
 private String total_views;
+private long favCounter=0;
+private boolean isFav=false;
 
     public String getImageId3() {
         return imageId3;
@@ -92,5 +94,22 @@ private String total_views;
 
     public void setName(String name) {
         this.name = name;
+    }
+
+
+    public long getFavCounter() {
+        return favCounter;
+    }
+
+    public void setFavCounter(long favCounter) {
+        this.favCounter = favCounter;
+    }
+
+    public boolean isFav() {
+        return isFav;
+    }
+
+    public void setFav(boolean fav) {
+        isFav = fav;
     }
 }

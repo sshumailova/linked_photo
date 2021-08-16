@@ -1,6 +1,6 @@
 package com.android.linkedphotoShSonya.Adapter;
 
-import com.android.linkedphotoShSonya.NewPost;
+import com.android.linkedphotoShSonya.db.NewPost;
 
 import java.util.List;
 

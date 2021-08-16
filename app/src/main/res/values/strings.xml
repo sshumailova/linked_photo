@@ -28,7 +28,6 @@
     <string name="alert">Attention!</string>
     <string name="sing_up">Sign Up</string>
     <string name="my_files">My files</string>
-    <string name="all_files">All photos</string>
     <string name="item_deleted">Item is deleted!</string>
     <string name="main_image">Photo 1</string>
     <string name="google_sing_up">" Google Sign Up"</string>
@@ -42,4 +41,9 @@
     <string name="email_is_empty">You have not specified your email!</string>
     <string name="email_is_send">Recovery instructions have been sent to your email!</string>
     <string name="images_loading">Please wait, images loading...</string>
+    <string name="different">Different</string>
+    <string name="more">load more...</string>
+    <string name="host">Visitor</string>
+    <string name="all">All Photos</string>
+    <string name="my_favs">Liked</string>
 </resources>

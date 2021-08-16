@@ -24,6 +24,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthCredential;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import org.jetbrains.annotations.NotNull;
+
 //import static com.android.linkedphotoShSonya.MainActivity.GOOGLE_SIGN_IN_CODE;
 
 public class AccountHelper {
@@ -53,7 +55,7 @@ public class AccountHelper {
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     sendEmailVerifocation(user);
                                 }
-                                activity.getUserData();
+                                activity.updateUI();
 
                             } else {
                                 // If sign in fails, display a message to the user.
@@ -82,7 +84,7 @@ public class AccountHelper {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
-                                activity.getUserData();
+                                activity.updateUI();
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w("MyLogMain", "signInWithEmail:failure", task.getException());
@@ -98,9 +100,15 @@ public class AccountHelper {
     }
 
     public void SignOut() {
-        activity.getUserData();
-        signInClient.signOut();
+        if(mAuth.getCurrentUser()==null){
+            return;
+        }
+        if(mAuth.getCurrentUser().isAnonymous()){
+            return;
+        }
         mAuth.signOut();
+        signInClient.signOut();
+        activity.updateUI();
     }
 
     private void sendEmailVerifocation(FirebaseUser user) {
@@ -134,7 +142,7 @@ public class AccountHelper {
                 if (task.isSuccessful()) {
                     if(index==1)linkEmailAndPassword(temp_email,temp_password);
                     Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
-                    activity.getUserData();
+                    activity.updateUI();
                 } else {
 
                 }
@@ -203,7 +211,7 @@ sendEmailVerifocation(mAuth.getCurrentUser());}
                                 if (task.getResult() == null) {
                                     return;
                                 }
-                                activity.getUserData();
+                                activity.updateUI();
                             } else {
                                 Toast.makeText(activity, "Authentication failed.",
                                         Toast.LENGTH_SHORT).show();
@@ -217,5 +225,18 @@ sendEmailVerifocation(mAuth.getCurrentUser());}
             temp_email=email;
             showDialogWithLink(R.string.alert,R.string.sign_link_message);
         }
+    }
+    public void signInAnonimous(){
+        mAuth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
+                if(task.isSuccessful()){
+                    activity.updateUI();
+                }
+                else {
+                    //сюда написать что ошибка
+                }
+            }
+        });
     }
 }

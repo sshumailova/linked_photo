@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Linked Photo</string>
     <string name="my_files">Мои файлы</string>
-    <string name="all_files">Лента</string>
     <string name="sing_up">Регистрация</string>
     <string name="sign_in">Вход</string>
     <string name="sing_out">Выход</string>
@@ -41,4 +40,9 @@
     <string name="email_is_empty">Вы не указали ваш email!</string>
     <string name="email_is_send">Инструкции по восстановлению отправлены Вам на почту!</string>
     <string name="images_loading">Изображения загружаются, пожалуйста подождите!</string>
+    <string name="different">Разное</string>
+    <string name="more">еще</string>
+    <string name="host">Гость</string>
+    <string name="all">Лента</string>
+    <string name="my_favs">Избранное</string>
 </resources>

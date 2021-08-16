@@ -3,7 +3,11 @@ package com.android.linkedphotoShSonya.utils;
 import com.android.linkedphotoShSonya.MainActivity;
 
 public class MyConstants {
+    public static final String ALL_PHOTOS="all";
+    public static final String MY_ADS="my_files";
+    public static final String MY_FAVS="my favs";
     public static final String New_POST_INTENT ="im_id"+ MainActivity.class.getName();
+    public static final int ADS_LIMIT =2;
     public static final String IMAGE_ID2 ="im_id_2"+ MainActivity.class.getName();
     public static final String IMAGE_ID3 ="im_id_3"+ MainActivity.class.getName();
     public static final String DISC_ID ="disc_id"+ MainActivity.class.getName();

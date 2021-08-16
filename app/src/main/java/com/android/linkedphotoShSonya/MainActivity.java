@@ -10,7 +10,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,22 +27,22 @@ import android.widget.Toast;
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
+import com.android.linkedphotoShSonya.db.DbManager;
+import com.android.linkedphotoShSonya.db.NewPost;
+import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthCredential;
-import com.google.firebase.auth.GoogleAuthProvider;
 import com.squareup.picasso.Picasso;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,16 +55,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AlertDialog dialog;
     private DrawerLayout drawerLayout;
     private Toolbar toolbar;
-    private FloatingActionButton fb;
     private PostAdapter.OnItemClickCustom onItemClickCustom;
-    private RecyclerView rcView;
+    public RecyclerView rcView;
     private PostAdapter postAdapter;
     private DataSender dataSender;
     private DbManager dbManager;
     public static String MAUTh = "";
-    public static String current_cat = "";
+    public String current_cat = MyConstants.ALL_PHOTOS;
     private AccountHelper accountHelper;
     private ImageView imPhoto;
+    private FloatingActionButton newAdItem;
+    private MenuItem myAdsItem, myFavsItem;
 
 
     @Override
@@ -75,20 +75,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
+        setOnScrollListener();
     }
 
     protected void onResume() {
         super.onResume();
-        GoogleSignInAccount account=GoogleSignIn.getLastSignedInAccount(this);
-        if(account!=null){
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null) {
             Picasso.get().load(account.getPhotoUrl()).into(imPhoto);
         }
-        Log.d("MyLog", "OnResume");
-        if (current_cat.equals("Мои файлы")) {
-            dbManager.getMyDataFromDb(mAuth.getUid(), "notes");
-        } else {
-            dbManager.getDataFromDb("notes");
-        }
+        dbManager.getDataFromDb(current_cat, "0");
+
     }
 
     private void setOnItemClickCustom() {
@@ -136,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void onStart() {
         super.onStart();
-        getUserData();
+        updateUI();
     }
 
     private void init() {
@@ -148,10 +145,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         rcView.setAdapter(postAdapter);
         nav_view = findViewById(R.id.nav_view);
+        myAdsItem=nav_view.getMenu().findItem(R.id.id_my_files);
+        myFavsItem=nav_view.getMenu().findItem(R.id.id_fav);
         nav_view.setNavigationItemSelectedListener(this);
-        imPhoto=nav_view.getHeaderView(0).findViewById(R.id.imPhoto);
+        imPhoto = nav_view.getHeaderView(0).findViewById(R.id.imPhoto);
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
+        newAdItem = findViewById(R.id.fb);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.toggle_open, R.string.toggle_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
@@ -160,23 +160,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         userEmail = nav_view.getHeaderView(0).findViewById(R.id.tvEmail);
         mAuth = FirebaseAuth.getInstance();
         accountHelper = new AccountHelper(mAuth, this);
-        Menu menu=nav_view.getMenu();
+        Menu menu = nav_view.getMenu();
         MenuItem categoryAccountItem;
         getDataDb();
         dbManager = new DbManager(dataSender, this);
         //dbManager.getDataFromDb("notes");
         postAdapter.setDbManager(dbManager);
 
+
     }
 
-    public void getUserData() {
+    private void setOnScrollListener() {
+        rcView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull @NotNull RecyclerView recyclerView, int newState) {
+                if (!rcView.canScrollVertically(1)) {
+                    //Log.d("MyLog ", "Can not scroll down");
+                /*   dbManager.getDataFromDb(current_cat,postAdapter.getMainList().get(postAdapter.getMainList().size()-1).getTime());
+                    rcView.scrollToPosition(0);*/
+                } else if (!rcView.canScrollVertically(-1)) {
+                    Log.d("MyLog ", "Can not scroll down");
+                }
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
+    }
+
+    public void updateUI() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            userEmail.setText(currentUser.getEmail());
+            if (currentUser.isAnonymous()) {
+                newAdItem.setVisibility(View.GONE);
+                myFavsItem.setVisible(false);
+                myAdsItem.setVisible(false);
+                userEmail.setText(R.string.host);
+            } else {
+                newAdItem.setVisibility(View.VISIBLE);
+                myFavsItem.setVisible(true);
+                myAdsItem.setVisible(true);
+                userEmail.setText(currentUser.getEmail());
+            }
             MAUTh = mAuth.getUid();
+            onResume();
         } else {
-            userEmail.setText(R.string.sign_in_our_sign_up);
-            MAUTh = "";
+            accountHelper.signInAnonimous();
         }
     }
 
@@ -193,24 +220,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
+        final int id_my_files = R.id.id_my_files;
+        final int id_all_files = R.id.id_all_files;
+        final int id_sing_up = R.id.id_sing_up;
+        final int id_sing_in = R.id.id_sing_in;
+        final int id_sing_out = R.id.id_sing_out;
+        final int id_my_fav = R.id.id_fav;
+        postAdapter.isStartPage=true;
         switch (id) {
-            case R.id.id_my_files:
-                current_cat = "Мои файлы";
-                dbManager.getMyDataFromDb(mAuth.getUid(), "notes");
+            case id_my_files:
+                //current_cat = "Мои файлы";
+                current_cat = MyConstants.MY_ADS;
+                dbManager.getDataFromDb(current_cat, "0");
                 break;
-            case R.id.id_all_files:
-                current_cat = "Лента";
-                dbManager.getDataFromDb("notes");
+            case id_my_fav:
+                current_cat = MyConstants.MY_FAVS;
+                dbManager.getDataFromDb(current_cat, "0");
+                ;
                 break;
-            case R.id.id_sing_up:
+            case id_all_files:
+                //current_cat = "Лента";
+                current_cat = MyConstants.ALL_PHOTOS;
+                dbManager.getDataFromDb(current_cat, "2");
+                break;
+            case id_sing_up:
                 signUpDialog(R.string.sing_up, R.string.signup_button, R.string.google_sing_up, 0);
                 // Toast.makeText(this, "Pressed id sign up", Toast.LENGTH_SHORT).show();
                 break;
-            case R.id.id_sing_in:
+            case id_sing_in:
                 signUpDialog(R.string.sign_in, R.string.signin_button, R.string.google_sign_in, 1);
                 //Toast.makeText(this, "Pressed id sign in", Toast.LENGTH_SHORT).show();
                 break;
-            case R.id.id_sing_out:
+            case id_sing_out:
                 imPhoto.setImageResource(android.R.color.transparent);
                 accountHelper.SignOut();
                 //Toast.makeText(this, "Pressed id sign out", Toast.LENGTH_SHORT).show();
@@ -227,12 +268,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View dialogView = inflater.inflate(R.layout.sign_app_layout, null);
         dialogBulder.setView(dialogView);
         TextView titleTextView = dialogView.findViewById(R.id.tvAlerTitle);
-        TextView tMessage= dialogView.findViewById(R.id.tvMessage);
+        TextView tMessage = dialogView.findViewById(R.id.tvMessage);
         titleTextView.setText(title);
         Button singUpEmail = dialogView.findViewById(R.id.buttonSignUp);
         SignInButton signUpGoogle = dialogView.findViewById(R.id.bSignGoogle);
         Button forgetPassword = dialogView.findViewById(R.id.bForgetPassword);
-        switch (index){
+        switch (index) {
             case 0:
                 forgetPassword.setVisibility(View.GONE);
                 break;
@@ -246,77 +287,102 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         singUpEmail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (index == 0) {
-                    accountHelper.signUp(edEmail.getText().toString(), edPassword.getText().toString());
-                } else {
-                    accountHelper.SignIn(edEmail.getText().toString(), edPassword.getText().toString());
-                }
-                dialog.dismiss();
-            }
-        });
-        signUpGoogle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
                 if (mAuth.getCurrentUser() != null) {
-                    dialog.dismiss();
-                    return;
-                } else {
+                        if (mAuth.getCurrentUser().isAnonymous()) {
+                            mAuth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        if (index == 0) {
+                                            accountHelper.signUp(edEmail.getText().toString(), edPassword.getText().toString());
+                                        } else {
+                                            accountHelper.SignIn(edEmail.getText().toString(), edPassword.getText().toString());
+                                        }
+                                    }
+                                }
+                            });
 
-                    accountHelper.SignInGoogle(AccountHelper.GOOGLE_SIGN_IN_CODE);
+                        }
+                    }
+                    dialog.dismiss();
+                }
+            });
+        signUpGoogle.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
+                if (mAuth.getCurrentUser() != null) {
+                    if (mAuth.getCurrentUser().isAnonymous()) {
+                        mAuth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    accountHelper.SignInGoogle(AccountHelper.GOOGLE_SIGN_IN_CODE);
+                                }
+                            }
+                        });
+                    }
                 }
                 dialog.dismiss();
             }
-        });
-        forgetPassword.setOnClickListener(new View.OnClickListener() {
-                                              @Override
-                                              public void onClick(View v) {
-                                                  if (edPassword.isShown()) {
-                                                      edPassword.setVisibility(View.GONE);
-                                                      singUpEmail.setVisibility(View.GONE);
-                                                      signUpGoogle.setVisibility(View.GONE);
-                                                      titleTextView.setText(R.string.forget_password);
-                                                      forgetPassword.setText(R.string.send_recet_password);
-                                                      tMessage.setVisibility(View.VISIBLE);
-                                                      tMessage.setText(R.string.forget_password_message);
-                                                      // dialog.dismiss();
-                                                  } else {
-                                                      if (!edEmail.getText().toString().equals("")) {
-                                                          FirebaseAuth.getInstance().sendPasswordResetEmail(edEmail.getText().toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                              @Override
-                                                              public void onComplete(@NonNull Task<Void> task) {
-                                                                  if (task.isSuccessful()) {
-                                                                      Toast.makeText(MainActivity.this, R.string.email_is_send, Toast.LENGTH_SHORT).show();
-                                                                      dialog.dismiss();
-                                                                  } else {
-                                                                      Toast.makeText(MainActivity.this, "Mistake", Toast.LENGTH_SHORT).show();
-                                                                  }
-                                                              }
-                                                          });
-                                                      } else {
-                                                          Toast.makeText(MainActivity.this, R.string.email_is_empty, Toast.LENGTH_SHORT).show();
-                                                      }
-                                                  }
-                                              }
-                                          });
-        dialog = dialogBulder.create();
+            });
+        forgetPassword.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
+                if (edPassword.isShown()) {
+                    edPassword.setVisibility(View.GONE);
+                    singUpEmail.setVisibility(View.GONE);
+                    signUpGoogle.setVisibility(View.GONE);
+                    titleTextView.setText(R.string.forget_password);
+                    forgetPassword.setText(R.string.send_recet_password);
+                    tMessage.setVisibility(View.VISIBLE);
+                    tMessage.setText(R.string.forget_password_message);
+                    // dialog.dismiss();
+                } else {
+                    if (!edEmail.getText().toString().equals("")) {
+                        FirebaseAuth.getInstance().sendPasswordResetEmail(edEmail.getText().toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(MainActivity.this, R.string.email_is_send, Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "Mistake", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    } else {
+                        Toast.makeText(MainActivity.this, R.string.email_is_empty, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+            });
+            dialog =dialogBulder.create();
         if(dialog.getWindow()!=null)
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                dialog.getWindow().
+
+            setBackgroundDrawableResource(android.R.color.transparent);
 
         dialog.show();
 
-    }
-
-    public void onClickEdit(View view) {
-        if (mAuth.getCurrentUser() != null) {
-            if (mAuth.getCurrentUser().isEmailVerified()) {
-                Intent i = new Intent(MainActivity.this, EditActivity.class);
-                startActivity(i);
-            } else {
-                accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);
-            }
         }
 
+        public void onClickEdit (View view){
+            if (mAuth.getCurrentUser() != null) {
+                if (mAuth.getCurrentUser().isEmailVerified()) {
+                    Intent i = new Intent(MainActivity.this, EditActivity.class);
+                    startActivity(i);
+                } else {
+                    accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);
+                }
+            }
+
+        }
+
+    public FirebaseAuth getmAuth() {
+        return mAuth;
     }
-
-
 }

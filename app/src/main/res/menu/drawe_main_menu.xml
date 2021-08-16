@@ -6,9 +6,14 @@
         <item android:title="@string/my_files"
             android:id="@+id/id_my_files"
             android:icon="@drawable/ic_my_files"/>
-        <item android:title="@string/all_files"
+        <item
+            android:id="@+id/id_fav"
+            android:icon="@drawable/ic_fav_selected"
+            android:title="@string/my_favs" />
+        <item
             android:id="@+id/id_all_files"
-            android:icon="@drawable/ic_my_files"/>
+            android:icon="@drawable/ic_my_files"
+            android:title="@string/all" />
     </group>
     <item android:title="@string/account">
 <menu>

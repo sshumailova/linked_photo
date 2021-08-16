@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
+import com.android.linkedphotoShSonya.db.DbManager;
+import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
     private TextView tvImagesCounter;
     private int like;
+    private NewPost newPost;
+    private DbManager dbManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     }
 
     private void init() {
+        dbManager=new DbManager(null,this);
         imagesUris = new ArrayList<>();
         // tvImagesCounter=findViewById(R.id.tvImagedCounter2);
         ViewPager vp = findViewById(R.id.view_pager);
@@ -56,7 +61,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
         tvImagesCounter = findViewById(R.id.tvImagedCounter2);
         tvDisc = findViewById(R.id.tvMain);
         tvTotalViews = findViewById(R.id.tvViews);
-        tvTotalLike=findViewById(R.id.tvLike);
+        tvTotalLike=findViewById(R.id.tvQuantityLike);
         // imMAin=findViewById(R.id.imMain);
         if (getIntent() != null) {
             Intent i = getIntent();
@@ -93,6 +98,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     }
 
     public void Like(View view) {
+        //  dbManager.updateTotalLike(newPost);
        // like++;
        // tvTotalLike.setText(like);
     }

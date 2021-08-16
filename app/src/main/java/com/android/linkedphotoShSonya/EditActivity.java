@@ -18,6 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
+import com.android.linkedphotoShSonya.db.DbManager;
+import com.android.linkedphotoShSonya.db.NewPost;
+import com.android.linkedphotoShSonya.db.StatusItem;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
@@ -27,7 +30,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -92,10 +94,11 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             @Override
             public void onPageSelected(int position) {
                 String dataText = position + 1 + "/" + imagesUris.size();
+                tvImagesCounter.setVisibility(View.VISIBLE);
                 tvImagesCounter.setText(dataText);
             }
 
-            @Override
+
             public void onPageScrollStateChanged(int state) {
 
             }
@@ -108,7 +111,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         edDisc = findViewById(R.id.editDesc);
 
         total_views = findViewById(R.id.tvTotalViews);
-tvLike=findViewById(R.id.tvLike);
+tvLike=findViewById(R.id.tvQuantityLike);
 tvName=findViewById(R.id.tvName);
         mstorageRef = FirebaseStorage.getInstance().getReference("Images");
 
@@ -153,6 +156,7 @@ tvName=findViewById(R.id.tvName);
         } else {
             dataText = 0 + "/" + imagesUris.size();
         }
+        tvImagesCounter.setVisibility(View.VISIBLE);
         tvImagesCounter.setText(dataText);
 
     }
@@ -224,6 +228,7 @@ tvName=findViewById(R.id.tvName);
                 } else {
                     dataText = 0 + "/" + imagesUris.size();
                 }
+                tvImagesCounter.setVisibility(View.VISIBLE);
                 tvImagesCounter.setText(dataText);
             }
         }
@@ -259,7 +264,7 @@ tvName=findViewById(R.id.tvName);
     }
 
     private void savePost() {
-        dRef = FirebaseDatabase.getInstance().getReference("notes");
+        dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
         myAuth = FirebaseAuth.getInstance();
         if (myAuth.getUid() != null) {
             String key = dRef.push().getKey();
@@ -274,7 +279,11 @@ tvName=findViewById(R.id.tvName);
             post.setCat("notes");
             post.setTotal_views("0");
             if (key != null) {
+                StatusItem stItem=new StatusItem();
+                stItem.catTime=post.getCat()+"_"+post.getTime();
+                stItem.filter_by_time=post.getTime();
                 dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
+                dRef.child(key).child("status").setValue(stItem);
             }
         }
     }
@@ -301,7 +310,7 @@ tvName=findViewById(R.id.tvName);
     private void updatePost() {
         myAuth = FirebaseAuth.getInstance();
         if (myAuth.getUid() != null) {
-        dRef = FirebaseDatabase.getInstance().getReference(temp_cat);
+        dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
         NewPost post = new NewPost();
         post.setImageId(uploadUri[0]);
         post.setImageId2(uploadUri[1]);
