@@ -46,4 +46,7 @@
     <string name="host">Visitor</string>
     <string name="all">All Photos</string>
     <string name="my_favs">Liked</string>
+    <string name="select_country">*Select country</string>
+    <string name="select_city">*Select city</string>
+    <string name="no_result">No Result</string>
 </resources>

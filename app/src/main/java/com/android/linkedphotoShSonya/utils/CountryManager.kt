@@ -1,10 +1,11 @@
 package com.android.linkedphotoShSonya.utils
 
 import android.content.Context
+import com.android.linkedphotoShSonya.R
 import org.json.JSONObject
 import java.io.IOException
 import java.io.InputStream
-import java.util.ArrayList
+import java.util.*
 
 object CountryManager {
     fun getAllCountries(context: Context): ArrayList<String> {
@@ -27,5 +28,21 @@ object CountryManager {
 
         }
         return tempArray;
+    }
+
+    fun filterListData(list: ArrayList<String>, searchText: String?): ArrayList<String> {
+        val tempList=ArrayList<String>()
+        if(searchText==null){
+            tempList.add("No Result")
+            return tempList;
+        }
+        for(selection :String in list){// сколько есть вэтом списке -столько раз и запускается
+            if(selection.toLowerCase(Locale.ROOT).startsWith(searchText.toLowerCase(Locale.ROOT)))
+                tempList.add(selection)
+        }
+        if(tempList.isEmpty()){
+            tempList.add("No Result")
+        }
+        return tempList
     }
 }

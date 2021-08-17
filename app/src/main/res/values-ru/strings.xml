@@ -45,4 +45,7 @@
     <string name="host">Гость</string>
     <string name="all">Лента</string>
     <string name="my_favs">Избранное</string>
+    <string name="select_country">*Выберите страну</string>
+    <string name="select_city">*Выберите город</string>
+    <string name="no_result">" Ничего не нашлось"</string>
 </resources>

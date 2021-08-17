@@ -69,6 +69,25 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <TextView
+                android:id="@+id/tvSelectCountry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:onClick="onClickSetCountry"
+                android:padding="4dp"
+                android:text="@string/select_country"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tvSelectCIty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="4dp"
+                android:text="@string/select_city"
+                android:textSize="18sp" />
+
             <EditText
                 android:id="@+id/editDesc"
                 android:layout_width="match_parent"
@@ -85,18 +104,6 @@
                 app:layout_constraintStart_toStartOf="@+id/view_pager"
                 app:layout_constraintTop_toBottomOf="@+id/view_pager"
                 app:layout_constraintVertical_bias="0.095" />
-
-            <TextView
-                android:id="@+id/tvSelectCountry"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="TextView" />
-
-            <TextView
-                android:id="@+id/tvSelectCIty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="TextView" />
 
         </LinearLayout>
     </ScrollView>

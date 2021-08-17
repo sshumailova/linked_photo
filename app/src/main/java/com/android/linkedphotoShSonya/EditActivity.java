@@ -22,6 +22,8 @@ import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.db.StatusItem;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
+import com.android.linkedphotoShSonya.utils.CountryManager;
+import com.android.linkedphotoShSonya.utils.DialogHelper;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
@@ -49,7 +51,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private DatabaseReference dRef;
     private FirebaseAuth myAuth;
     private EditText edDisc;
-    private TextView total_views, tvName,tvLike;
+    private TextView total_views, tvName, tvLike;
     private boolean edit_state = false;
     private String temp_cat = "";
     private String temp_uid = "";
@@ -111,8 +113,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         edDisc = findViewById(R.id.editDesc);
 
         total_views = findViewById(R.id.tvTotalViews);
-tvLike=findViewById(R.id.tvQuantityLike);
-tvName=findViewById(R.id.tvName);
+        tvLike = findViewById(R.id.tvQuantityLike);
+        tvName = findViewById(R.id.tvName);
         mstorageRef = FirebaseStorage.getInstance().getReference("Images");
 
     }
@@ -129,14 +131,14 @@ tvName=findViewById(R.id.tvName);
 
     private void setDataAds(Intent i) {
         // Picasso.get().load(i.getStringExtra(MyConstants.IMAGE_ID)).into(imItem);
-        NewPost newPost=(NewPost)i.getSerializableExtra(MyConstants.New_POST_INTENT);
-        if(newPost==null){
+        NewPost newPost = (NewPost) i.getSerializableExtra(MyConstants.New_POST_INTENT);
+        if (newPost == null) {
             return;
         }
         edDisc.setText(newPost.getDisc());
         temp_cat = newPost.getCat();
         temp_uid = newPost.getUid();
-        temp_time =newPost.getTime();
+        temp_time = newPost.getTime();
         temp_key = newPost.getKey();
         temp_total_views = newPost.getTotal_views();
         uploadUri[0] = newPost.getImageId();
@@ -160,6 +162,7 @@ tvName=findViewById(R.id.tvName);
         tvImagesCounter.setText(dataText);
 
     }
+
 
     private void uploadImage() {
         if (load_image_coat < uploadUri.length) {
@@ -425,6 +428,9 @@ tvName=findViewById(R.id.tvName);
             }
         });
 
+    }
+    public void onClickSetCountry(View view){
+        DialogHelper.INSTANCE.showDialog(this, CountryManager.INSTANCE.getAllCountries(this));
     }
 }
 
