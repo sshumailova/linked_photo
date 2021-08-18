@@ -48,4 +48,5 @@
     <string name="select_country">*Выберите страну</string>
     <string name="select_city">*Выберите город</string>
     <string name="no_result">" Ничего не нашлось"</string>
+    <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>

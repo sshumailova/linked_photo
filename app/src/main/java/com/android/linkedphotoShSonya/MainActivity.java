@@ -30,6 +30,9 @@ import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.utils.MyConstants;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.SignInButton;
@@ -66,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageView imPhoto;
     private FloatingActionButton newAdItem;
     private MenuItem myAdsItem, myFavsItem;
-
+private AdView adView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,18 +77,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d("MyLog", "Oncreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        addAds();
         init();
         setOnScrollListener();
     }
 
     protected void onResume() {
         super.onResume();
+        if(adView!=null){
+            adView.resume();
+        }
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
             Picasso.get().load(account.getPhotoUrl()).into(imPhoto);
         }
         dbManager.getDataFromDb(current_cat, "0");
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(adView!=null){
+            adView.resume();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(adView!=null){
+            adView.destroy();
+        }
     }
 
     private void setOnItemClickCustom() {
@@ -384,5 +407,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public FirebaseAuth getmAuth() {
         return mAuth;
+    }
+    private void addAds(){
+        MobileAds.initialize(this);
+        adView=findViewById(R.id.adView);
+        AdRequest adRequest=new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
     }
 }
