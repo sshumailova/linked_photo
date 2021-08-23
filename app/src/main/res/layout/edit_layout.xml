@@ -84,6 +84,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:onClick="onClickSetCity"
                 android:padding="4dp"
                 android:text="@string/select_city"
                 android:textSize="18sp" />

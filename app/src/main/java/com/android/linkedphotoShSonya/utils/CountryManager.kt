@@ -45,4 +45,22 @@ object CountryManager {
         }
         return tempList
     }
+    fun getAllCites(context: Context,country:String): ArrayList<String> {
+        val tempArray = ArrayList<String>()
+        try {
+            val inputStream: InputStream = context.assets.open("countriesToCities.json")
+            val size: Int = inputStream.available()
+            val byteArray = ByteArray(size)
+            inputStream.read(byteArray)
+            val jFile = String(byteArray)
+            val jObjects = JSONObject(jFile)
+            val cites = jObjects.getJSONArray(country);
+                for (n in 0 until cites.length()) {
+                    tempArray.add(cites.getString(n))
+                }
+        } catch (e: IOException) {
+
+        }
+        return tempArray;
+    }
 }

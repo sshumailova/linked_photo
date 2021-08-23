@@ -43,7 +43,7 @@ public class DbManager {
     private FirebaseDatabase db;
     private FirebaseStorage fs;
     private FirebaseAuth mAuth;
-    private int cat_ads_counter = 0;
+    private long cat_ads_counter = 0;
     String text;
     private int deleteImageCounter = 0;
 
@@ -240,9 +240,12 @@ public class DbManager {
                         String favUid = (String) ds.child(FAv_ADS_PATh).child(mAuth.getUid()).child(USER_FAV_ID).getValue();
                         if (newPost != null) {
                             newPost.setFavCounter(ds.child(FAv_ADS_PATh).getChildrenCount());
+
                         }
                         if (favUid != null && newPost != null) {
                             newPost.setFav(true);
+
+
                         }
                     }
                     if (newPost != null && statusItem != null) {
@@ -300,7 +303,8 @@ public class DbManager {
         }
     }
 
-    private void addFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
+
+    public void addFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
         if (mAuth.getUid() == null) {
             return;
         }
@@ -318,7 +322,7 @@ public class DbManager {
         });
     }
 
-    private void deleteFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
+    public void deleteFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
         if (mAuth.getUid() == null) {
             return;
         }

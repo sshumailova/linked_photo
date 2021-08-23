@@ -6,6 +6,8 @@ public class NewPost implements Serializable {
     private String imageId;
     private String imageId2;
     private String imageId3;
+    private String country;
+    private String city;
     private String disc;
     private String key;
 private String uid;
@@ -97,7 +99,8 @@ private boolean isFav=false;
     }
 
 
-    public long getFavCounter() {
+    public long getFavCounter()
+    {
         return favCounter;
     }
 
@@ -111,5 +114,21 @@ private boolean isFav=false;
 
     public void setFav(boolean fav) {
         isFav = fav;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 }

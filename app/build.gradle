@@ -29,10 +29,10 @@ android {
 
     }
     
-//
-//    buildFeatures{
-//        viewBinding true // for view binding
-//   }
+
+    buildFeatures {
+        viewBinding true // for view binding
+   }
 
 }
 

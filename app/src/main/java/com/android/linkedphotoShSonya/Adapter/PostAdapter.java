@@ -28,17 +28,17 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import static com.android.linkedphotoShSonya.R.id.tvQuantityLike;
-
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> {
     public static final String TAG = "MyLog";
+    public static final String NEXT_PAGE = "nextPage";
+    public static final String BACK_PAGE = "backPage";
     private List<NewPost> mainPostList;
     private Context context;
     private OnItemClickCustom onItemClickCustom;
     private DbManager dbManager;
     private int myViewType = 0;
     private int VIEW_TYPE_ADS = 0;
-    private int VIEW_TYPE_BUTTON = 1;
+    private int VIEW_TYPE_END_BUTTON = 1;
     public boolean isStartPage = true;
     private int NEXT_ADS_B = 1;
     private int BACK_ADS_B = 2;
@@ -57,7 +57,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     @Override
     public ViewHolderData onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
-        if (viewType == VIEW_TYPE_BUTTON) {
+        if (viewType == VIEW_TYPE_END_BUTTON) {
             view = LayoutInflater.from(context).inflate(R.layout.end_ads_item, parent, false);
         } else {
             view = LayoutInflater.from(context).inflate(R.layout.item_ads, parent, false);
@@ -70,23 +70,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     @Override
     public void onBindViewHolder(@NonNull PostAdapter.ViewHolderData holder, int position) {
 //кнопки для подгрузки вверх и вниз
-        int index = 1;
-        if (!isStartPage) {
-            index = 2;
-        }
-        if (position == mainPostList.size() - 1 && (mainPostList.size() - index) == MyConstants.ADS_LIMIT) {
-            holder.setNextItemData();
-        } else if (position == 0 && !isStartPage) {
-            holder.setBackItemData();
-        } else {
-            holder.setData(mainPostList.get(position));
-            setFavIfSelected(holder);
+        switch (mainPostList.get(position).getUid()) {
+            case NEXT_PAGE:
+                holder.setNextItemData();
+                break;
+            case BACK_PAGE:
+                holder.setBackItemData();
+                break;
+            default:
+                holder.setData(mainPostList.get(position));
+                setFavIfSelected(holder);
+                break;
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (mainPostList.get(position).getUid() == null) {
+        if (mainPostList.get(position).getUid().equals(NEXT_PAGE)||mainPostList.get(position).getUid().equals(BACK_PAGE)) {
             myViewType = 1;
         } else {
             myViewType = 0;
@@ -128,7 +128,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         mainPostList.clear();
         if (!startPagesState(listData)) {
             if (!isStartPage && listData.size() == MyConstants.ADS_LIMIT || adsButtonState == NEXT_ADS_B && !isStartPage) {
-                mainPostList.add(new NewPost());
+                NewPost tempPost=new NewPost();
+                tempPost.setUid(BACK_PAGE);
+                mainPostList.add(tempPost);
             } else if (!isStartPage && listData.size() < MyConstants.ADS_LIMIT && adsButtonState == BACK_ADS_B) {
                 loadFirstPage();
             }
@@ -137,7 +139,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         }
 
         if (listData.size() == MyConstants.ADS_LIMIT) {
-            listData.add(new NewPost());
+            NewPost tempPost=new NewPost();
+            tempPost.setUid(NEXT_PAGE);
+            listData.add(tempPost);
         }
         mainPostList.addAll(listData);
         notifyDataSetChanged();
@@ -179,7 +183,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         private LinearLayout editLayout;
         public ImageButton deleteButton, imEditItem, imFav;
         private OnItemClickCustom onItemClickCustom;
-        public TextView tvQuantityLikes;
+        public TextView tvQuantityLike;
 
 
         public ViewHolderData(@NonNull View itemView, OnItemClickCustom onItemClickCustom) {
@@ -193,7 +197,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             imFav = itemView.findViewById(R.id.imFav);
             this.onItemClickCustom = onItemClickCustom;
             itemView.setOnClickListener(this);
-            tvQuantityLikes=itemView.findViewById(R.id.tvQuantityLike);
+            tvQuantityLike = itemView.findViewById(R.id.tvQuantityLike);
         }
 
         public void setBackItemData() {
@@ -220,16 +224,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             });
         }
 
-        public void setData(NewPost newPost) {
-            FirebaseUser user=((MainActivity)context).getmAuth().getCurrentUser();
-if(user!=null){
-    editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
-    imFav.setVisibility(user.isAnonymous() ? View.GONE : View.VISIBLE);
-    tvQuantityLikes.setVisibility(user.isAnonymous() ? View.GONE : View.VISIBLE);
-}
-
+        public void setData(NewPost newPost) {//тут показываю данные
+            FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+            if (user != null) {
+                editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
+                imFav.setVisibility(user.isAnonymous() ? View.GONE : View.VISIBLE);
+                tvQuantityLike.setVisibility(user.isAnonymous() ? View.GONE : View.VISIBLE);
+            }
             Picasso.get().load(newPost.getImageId()).into(inAds);
-
+            tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
             String textDisc = "";
             if (newPost.getDisc().length() > 15) {
                 textDisc = newPost.getDisc().substring(0, 15) + "....";
@@ -237,6 +240,7 @@ if(user!=null){
             } else {
                 tvDisc.setText(newPost.getDisc());
                 tvTotalView.setText(newPost.getTotal_views());
+                //tvQuantityLike.setText((int) newPost.getFavCounter());
             }
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -250,7 +254,6 @@ if(user!=null){
                     Intent i = new Intent(context, EditActivity.class);
                     i.putExtra(MyConstants.New_POST_INTENT, newPost);
                     i.putExtra(MyConstants.EDIT_STATE, true);
-
                     context.startActivity(i);
 
                 }
@@ -258,7 +261,9 @@ if(user!=null){
             imFav.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    setFavCounter(newPost, tvQuantityLike);// при нажатии на сердце - запускается проверка
                     dbManager.updateFav(newPost, ViewHolderData.this);
+
 
                 }
             });
@@ -289,5 +294,13 @@ if(user!=null){
 
     public List<NewPost> getMainList() {
         return mainPostList;
+    }
+
+    public static void setFavCounter(NewPost newPost, TextView tvQuantityLike) {
+        int fCounter = Integer.parseInt(tvQuantityLike.getText().toString());
+        fCounter = (newPost.isFav()) ? --fCounter : ++fCounter; //если это израное - отнять 1 т.к становится не избранным, а
+        // если это не избранное- приавить 1 т.к становатся избранным
+        tvQuantityLike.setText(String.valueOf(fCounter));
+        newPost.setFavCounter((long) fCounter);
     }
 }

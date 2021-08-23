@@ -49,4 +49,5 @@
     <string name="select_city">*Выберите город</string>
     <string name="no_result">" Ничего не нашлось"</string>
     <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="country_notSelected">Страна не выбрана!</string>
 </resources>
