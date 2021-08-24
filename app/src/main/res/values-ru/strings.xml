@@ -11,7 +11,7 @@
     <string name="signin_button">Войти</string>
     <string name="sign_in_our_sign_up">Войдите или зарегистрируйтесь! </string>
     <!--EditActivity-->
-    <string name="edit_ac_Title">Подпись </string>
+    <string name="edit_ac_Title">*Подпись </string>
 
     <string name="bbbhbh">bbbhbh</string>
     <!--PostAdapter-->
@@ -50,4 +50,5 @@
     <string name="no_result">" Ничего не нашлось"</string>
     <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="country_notSelected">Страна не выбрана!</string>
+    <string name="empty_field_error">Внимание ошибка! Все поля обозначенные * должны быть заполнены!</string>
 </resources>

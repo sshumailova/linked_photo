@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -179,7 +180,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                         if (load_image_coat < uploadUri.length) {
                             uploadImage();
                         } else {
-                            savePost();
+                            publishPost();
                             Toast.makeText(EditActivity.this, "Upload  done: ", Toast.LENGTH_SHORT).show();
                             finish();
                         }
@@ -195,7 +196,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 uploadImage();
             }
         } else {
-            savePost();
+            publishPost();
             finish();
         }
     }
@@ -257,34 +258,28 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         startActivityForResult(intent, 10);
     }
 
-    private void savePost() {
-        dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
-        myAuth = FirebaseAuth.getInstance();
-        if (myAuth.getUid() != null) {
-            String key = dRef.push().getKey();
-            NewPost post = new NewPost();
-            post.setImageId(uploadUri[0]);
-            post.setImageId2(uploadUri[1]);
-            post.setImageId3(uploadUri[2]);
-            post.setDisc(rootElement.editDesc.getText().toString());
-            post.setCountry(rootElement.tvSelectCountry.getText().toString());
-            post.setCity(rootElement.tvSelectCIty.getText().toString());
-            post.setKey(key);
-            post.setTime(String.valueOf(System.currentTimeMillis()));
-            post.setUid(myAuth.getUid());
-            post.setCat("notes");
-            post.setTotal_views("0");
-            if (key != null) {
-                StatusItem stItem = new StatusItem();
-                stItem.catTime = post.getCat() + "_" + post.getTime();
-                stItem.filter_by_time = post.getTime();
-                dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
-                dRef.child(key).child("status").setValue(stItem);
-            }
+    private void savePost(NewPost post) {
+
+        String key = dRef.push().getKey();
+        post.setKey(key);
+        post.setTime(String.valueOf(System.currentTimeMillis()));
+        post.setUid(myAuth.getUid());
+        post.setCat("notes");
+        post.setTotal_views("0");
+        if (key != null) {
+            StatusItem stItem = new StatusItem();
+            stItem.catTime = post.getCat() + "_" + post.getTime();
+            stItem.filter_by_time = post.getTime();
+            dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
+            dRef.child(key).child("status").setValue(stItem);
         }
     }
 
     public void onClickSavePost(View view) {
+        if(!isFieldEmpty()){
+            Toast.makeText(this, R.string.empty_field_error, Toast.LENGTH_LONG).show();
+            return;
+        }
         if (isImagesLoaded) {
             pd.show();
             if (!edit_state) {
@@ -294,16 +289,33 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 if (image_update) {
                     uploadUpdateImage();
                 } else {
-                    updatePost();
+                    publishPost();
                 }
             }
         } else {
             Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
-        }
+            if (!edit_state) {
+                uploadImage();
 
+            } else {
+                if (image_update) {
+                    uploadUpdateImage();
+                } else {
+                    publishPost();
+                }
+            }
+        }
     }
 
-    private void updatePost() {
+    private boolean isFieldEmpty() {//делаем что бы если пустое поле - то ошибка
+
+        String country = rootElement.tvSelectCountry.getText().toString();
+        String city = rootElement.tvSelectCIty.getText().toString();
+        String disc = rootElement.editDesc.getText().toString();
+        return (!getString(R.string.select_country).equals(country) && !getString(R.string.select_city).equals(city) && !TextUtils.isEmpty(disc));
+    }
+
+    private void publishPost() {
         myAuth = FirebaseAuth.getInstance();
         if (myAuth.getUid() != null) {
             dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
@@ -315,22 +327,31 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             post.setDisc(rootElement.editDesc.getText().toString());
             post.setCountry(rootElement.tvSelectCountry.getText().toString());
             post.setCity(rootElement.tvSelectCIty.getText().toString());
-            post.setDisc(rootElement.editDesc.getText().toString());
-
-            post.setKey(temp_key);
-            post.setTime(temp_time);
-            post.setUid(temp_uid);
-            post.setCat(temp_cat);
-            post.setTotal_views(temp_total_views);
-            dRef.child(temp_key).child(myAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            });
+            if (edit_state) {
+                updatePost(post);
+            } else {
+                savePost(post);
+            }
         }
 
+    }
+
+    private void updatePost(NewPost post) {
+        if (myAuth.getUid() == null) {
+            return;
+        }
+        post.setKey(temp_key);
+        post.setTime(temp_time);
+        post.setUid(temp_uid);
+        post.setCat(temp_cat);
+        post.setTotal_views(temp_total_views);
+        dRef.child(temp_key).child(myAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
     }
 
     private void uploadUpdateImage() {
@@ -359,7 +380,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                         if (load_image_coat < uploadUri.length) {
                             uploadUpdateImage();
                         } else {
-                            updatePost();
+                            publishPost();
                         }
                     }
                 });
@@ -393,7 +414,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                     if (load_image_coat < uploadUri.length) {
                         uploadUpdateImage();
                     } else {
-                        updatePost();
+                        publishPost();
                     }
 
 
@@ -405,7 +426,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 }
             });
         } else {
-            updatePost();
+            publishPost();
 
         }
     }

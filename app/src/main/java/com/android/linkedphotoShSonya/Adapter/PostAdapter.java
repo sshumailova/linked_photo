@@ -126,7 +126,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     public void updateAdapter(List<NewPost> listData) {
         mainPostList.clear();
-        if (!startPagesState(listData)) {
             if (!isStartPage && listData.size() == MyConstants.ADS_LIMIT || adsButtonState == NEXT_ADS_B && !isStartPage) {
                 NewPost tempPost=new NewPost();
                 tempPost.setUid(BACK_PAGE);
@@ -134,9 +133,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             } else if (!isStartPage && listData.size() < MyConstants.ADS_LIMIT && adsButtonState == BACK_ADS_B) {
                 loadFirstPage();
             }
-        } else {
-            loadFirstPage();
-        }
 
         if (listData.size() == MyConstants.ADS_LIMIT) {
             NewPost tempPost=new NewPost();
@@ -148,15 +144,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         adsButtonState = 0;
     }
 
-    private boolean startPagesState(List<NewPost> listData) {
-        MainActivity mAct = (MainActivity) context;
-        for (NewPost newPost : listData) {
-            if (newPost.getCat().equals(mAct.current_cat) && mAct.current_cat.equals(MyConstants.ALL_PHOTOS)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private void loadFirstPage() {
         isStartPage = true;

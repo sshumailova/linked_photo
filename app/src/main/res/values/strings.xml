@@ -20,7 +20,7 @@
     <string name="email_verified_send">Check you email and follow link in message to verify your email address! And Sign in again.</string>
     <string name="delte_title">Delete post</string>
     <string name="image2">Photo 2</string>
-    <string name="edit_ac_Title">Title</string>
+    <string name="edit_ac_Title">*Title</string>
     <string name="sign_in">Log In</string>
     <string name="sing_out">Log Out</string>
     <string name="account">Account</string>
@@ -51,4 +51,5 @@
     <string name="no_result">No Result</string>
     <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="country_notSelected">Сountry not selected!</string>
+    <string name="empty_field_error">Attention! All fields with * need fill!</string>
 </resources>
