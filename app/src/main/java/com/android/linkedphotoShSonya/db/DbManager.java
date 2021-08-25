@@ -94,6 +94,15 @@ public class DbManager {
        }
         readDataUpdate();
     }
+    public void getSearchResult(String searchText){
+        if (mAuth.getUid() == null) {
+            return;
+        }
+        DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
+        mQuery = dbRef.orderByChild( "/status/disc_time").startAt(searchText).endAt(searchText + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+        readDataUpdate();
+
+    }
     public void getBackFromDb(String cat, String lastTime) {
         if (mAuth.getUid() == null) {
             return;

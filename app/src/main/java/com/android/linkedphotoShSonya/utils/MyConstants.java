@@ -17,5 +17,7 @@ public class MyConstants {
     public static final String CAT="cat_id"+ MainActivity.class.getName();
     public static final String TOTAL_VIEWS="total_views"+ MainActivity.class.getName();
     public static final String EDIT_STATE="edit_state"+ MainActivity.class.getName();
+    public static final String MAIN_PREF ="main_shared_pref";
+    public static final String MAIN_FILTER ="main_shared_filter";
 
 }

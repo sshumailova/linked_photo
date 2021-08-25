@@ -44,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private ImageView imItem;
@@ -270,13 +271,18 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             StatusItem stItem = new StatusItem();
             stItem.catTime = post.getCat() + "_" + post.getTime();
             stItem.filter_by_time = post.getTime();
+            stItem.disc_time = post.getDisc().toLowerCase() + "_" + post.getTime();
+
+            stItem.country_disc_time = (post.getCountry() + "_" + post.getDisc() + "_" + post.getTime()).toLowerCase();
+            stItem.country_city_disc_time = (post.getCountry() + "_" + post.getCity() + "_" + post.getDisc() + "_" + post.getTime()).toLowerCase();
+
             dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
             dRef.child(key).child("status").setValue(stItem);
         }
     }
 
     public void onClickSavePost(View view) {
-        if(!isFieldEmpty()){
+        if (!isFieldEmpty()) {
             Toast.makeText(this, R.string.empty_field_error, Toast.LENGTH_LONG).show();
             return;
         }
@@ -452,12 +458,10 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
     public void onClickSetCountry(View view) {
         String city = rootElement.tvSelectCountry.getText().toString();
-        if (city.equals(getString(R.string.select_city))) {
-            DialogHelper.INSTANCE.showDialog(this, CountryManager.INSTANCE.getAllCountries(this), (TextView) view);
-        } else {
+        if (!city.equals(getString(R.string.select_city))) {
             rootElement.tvSelectCIty.setText(getString(R.string.select_city));
-            DialogHelper.INSTANCE.showDialog(this, CountryManager.INSTANCE.getAllCountries(this), (TextView) view);
         }
+        DialogHelper.INSTANCE.showDialog(this, CountryManager.INSTANCE.getAllCountries(this), (TextView) view);
     }
 
     public void onClickSetCity(View view) {

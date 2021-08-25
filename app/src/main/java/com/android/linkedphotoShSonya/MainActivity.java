@@ -6,11 +6,13 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SearchView.OnQueryTextListener {
     private NavigationView nav_view;
     private FirebaseAuth mAuth;
     private TextView userEmail;
@@ -69,7 +72,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageView imPhoto;
     private FloatingActionButton newAdItem;
     private MenuItem myAdsItem, myFavsItem;
-private AdView adView;
+    private AdView adView;
+    private SharedPreferences preferences;
+    private CardView filterHideContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,13 +89,14 @@ private AdView adView;
 
     protected void onResume() {
         super.onResume();
-        if(adView!=null){
+        if (adView != null) {
             adView.resume();
         }
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
             Picasso.get().load(account.getPhotoUrl()).into(imPhoto);
         }
+        showFilterDialog();
         dbManager.getDataFromDb(current_cat, "0");
 
     }
@@ -98,7 +104,7 @@ private AdView adView;
     @Override
     protected void onPause() {
         super.onPause();
-        if(adView!=null){
+        if (adView != null) {
             adView.resume();
         }
     }
@@ -106,7 +112,7 @@ private AdView adView;
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(adView!=null){
+        if (adView != null) {
             adView.destroy();
         }
     }
@@ -160,6 +166,8 @@ private AdView adView;
     }
 
     private void init() {
+        preferences=getSharedPreferences(MyConstants.MAIN_PREF,MODE_PRIVATE);
+        filterHideContainer=findViewById(R.id.filterHideLayout);
         setOnItemClickCustom();
         rcView = findViewById(R.id.rcView);
         rcView.setLayoutManager(new GridLayoutManager(this, 1));//тут можно указать как будут выглядеть элементы в recyclerView обычно делают LinearLayoutManager
@@ -168,12 +176,16 @@ private AdView adView;
 
         rcView.setAdapter(postAdapter);
         nav_view = findViewById(R.id.nav_view);
-        myAdsItem=nav_view.getMenu().findItem(R.id.id_my_files);
-        myFavsItem=nav_view.getMenu().findItem(R.id.id_fav);
+        myAdsItem = nav_view.getMenu().findItem(R.id.id_my_files);
+        myFavsItem = nav_view.getMenu().findItem(R.id.id_fav);
         nav_view.setNavigationItemSelectedListener(this);
         imPhoto = nav_view.getHeaderView(0).findViewById(R.id.imPhoto);
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.menu);
+        SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.main_search).getActionView();
+        searchView.setOnQueryTextListener(this);
+
         newAdItem = findViewById(R.id.fb);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.toggle_open, R.string.toggle_close);
         drawerLayout.addDrawerListener(toggle);
@@ -189,10 +201,18 @@ private AdView adView;
         dbManager = new DbManager(dataSender, this);
         //dbManager.getDataFromDb("notes");
         postAdapter.setDbManager(dbManager);
-
-
+        onToolbarItemClick();
     }
+private void showFilterDialog(){
+        String filter=preferences.getString(MyConstants.MAIN_FILTER,"empty");
+        if(filter.equals("empty")){
+            filterHideContainer.setVisibility(View.GONE);
+        }
+        else {
+            filterHideContainer.setVisibility(View.VISIBLE);
+        }
 
+}
     private void setOnScrollListener() {
         rcView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -249,7 +269,7 @@ private AdView adView;
         final int id_sing_in = R.id.id_sing_in;
         final int id_sing_out = R.id.id_sing_out;
         final int id_my_fav = R.id.id_fav;
-        postAdapter.isStartPage=true;
+        postAdapter.isStartPage = true;
         switch (id) {
             case id_my_files:
                 //current_cat = "Мои файлы";
@@ -311,30 +331,28 @@ private AdView adView;
             @Override
             public void onClick(View v) {
                 if (mAuth.getCurrentUser() != null) {
-                        if (mAuth.getCurrentUser().isAnonymous()) {
-                            mAuth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull @NotNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        if (index == 0) {
-                                            accountHelper.signUp(edEmail.getText().toString(), edPassword.getText().toString());
-                                        } else {
-                                            accountHelper.SignIn(edEmail.getText().toString(), edPassword.getText().toString());
-                                        }
+                    if (mAuth.getCurrentUser().isAnonymous()) {
+                        mAuth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    if (index == 0) {
+                                        accountHelper.signUp(edEmail.getText().toString(), edPassword.getText().toString());
+                                    } else {
+                                        accountHelper.SignIn(edEmail.getText().toString(), edPassword.getText().toString());
                                     }
                                 }
-                            });
+                            }
+                        });
 
-                        }
                     }
-                    dialog.dismiss();
                 }
-            });
-        signUpGoogle.setOnClickListener(new View.OnClickListener()
-
-            {
-                @Override
-                public void onClick (View v){
+                dialog.dismiss();
+            }
+        });
+        signUpGoogle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 if (mAuth.getCurrentUser() != null) {
                     if (mAuth.getCurrentUser().isAnonymous()) {
                         mAuth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -349,12 +367,10 @@ private AdView adView;
                 }
                 dialog.dismiss();
             }
-            });
-        forgetPassword.setOnClickListener(new View.OnClickListener()
-
-            {
-                @Override
-                public void onClick (View v){
+        });
+        forgetPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 if (edPassword.isShown()) {
                     edPassword.setVisibility(View.GONE);
                     singUpEmail.setVisibility(View.GONE);
@@ -382,36 +398,61 @@ private AdView adView;
                     }
                 }
             }
-            });
-            dialog =dialogBulder.create();
-        if(dialog.getWindow()!=null)
-                dialog.getWindow().
+        });
+        dialog = dialogBulder.create();
+        if (dialog.getWindow() != null)
+            dialog.getWindow().
 
-            setBackgroundDrawableResource(android.R.color.transparent);
+                    setBackgroundDrawableResource(android.R.color.transparent);
 
         dialog.show();
 
-        }
+    }
 
-        public void onClickEdit (View view){
-            if (mAuth.getCurrentUser() != null) {
-                if (mAuth.getCurrentUser().isEmailVerified()) {
-                    Intent i = new Intent(MainActivity.this, EditActivity.class);
-                    startActivity(i);
-                } else {
-                    accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);
-                }
+    public void onClickEdit(View view) {
+        if (mAuth.getCurrentUser() != null) {
+            if (mAuth.getCurrentUser().isEmailVerified()) {
+                Intent i = new Intent(MainActivity.this, EditActivity.class);
+                startActivity(i);
+            } else {
+                accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);
             }
-
         }
+
+    }
 
     public FirebaseAuth getmAuth() {
         return mAuth;
     }
-    private void addAds(){
+
+    private void addAds() {
         MobileAds.initialize(this);
-        adView=findViewById(R.id.adView);
-        AdRequest adRequest=new AdRequest.Builder().build();
+        adView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
+    }
+private void onToolbarItemClick(){
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId()==R.id.filter){
+                    Intent intent=new Intent(MainActivity.this,FilterActivity.class);
+                    startActivity(intent);
+                }
+                return false;
+            }
+        });
+}
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        dbManager.getSearchResult(newText.toLowerCase());
+        return true;
     }
 }

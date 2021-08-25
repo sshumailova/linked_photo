@@ -51,4 +51,10 @@
     <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="country_notSelected">Страна не выбрана!</string>
     <string name="empty_field_error">Внимание ошибка! Все поля обозначенные * должны быть заполнены!</string>
+    <string name="select_filter_country">Выберете страну для фильтрации:</string>
+    <string name="select_filter_city">Выберете город для фильтрации:</string>
+    <string name="use_filter">Применить фильтр</string>
+    <string name="cancel_use_filter">Отменить фильтр</string>
+    <string name="select_country_f_title">Выберите страну</string>
+    <string name="select_city_f_title">Выберите город</string>
 </resources>

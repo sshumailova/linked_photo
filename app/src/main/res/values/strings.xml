@@ -52,4 +52,11 @@
     <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="country_notSelected">Сountry not selected!</string>
     <string name="empty_field_error">Attention! All fields with * need fill!</string>
+    <!--TODO Filter Activity-->
+    <string name="select_filter_country">Choice country for filter:</string>
+    <string name="select_filter_city">Choice city for filter:</string>
+    <string name="use_filter">Use filter</string>
+    <string name="cancel_use_filter">Cancel filter</string>
+    <string name="select_country_f_title">Select country</string>
+    <string name="select_city_f_title">Select city</string>
 </resources>
