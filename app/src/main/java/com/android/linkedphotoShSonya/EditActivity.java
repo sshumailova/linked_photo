@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,10 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
+import com.android.linkedphotoShSonya.Status.StatusManager;
 import com.android.linkedphotoShSonya.databinding.EditLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
-import com.android.linkedphotoShSonya.db.StatusItem;
+import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.CountryManager;
 import com.android.linkedphotoShSonya.utils.DialogHelper;
@@ -44,7 +44,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private ImageView imItem;
@@ -268,16 +267,9 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setCat("notes");
         post.setTotal_views("0");
         if (key != null) {
-            StatusItem stItem = new StatusItem();
-            stItem.catTime = post.getCat() + "_" + post.getTime();
-            stItem.filter_by_time = post.getTime();
-            stItem.disc_time = post.getDisc().toLowerCase() + "_" + post.getTime();
-
-            stItem.country_disc_time = (post.getCountry() + "_" + post.getDisc() + "_" + post.getTime()).toLowerCase();
-            stItem.country_city_disc_time = (post.getCountry() + "_" + post.getCity() + "_" + post.getDisc() + "_" + post.getTime()).toLowerCase();
 
             dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
-            dRef.child(key).child("status").setValue(stItem);
+            dRef.child(key).child("status").setValue(StatusManager.fillStatusItem(post));
         }
     }
 
@@ -351,6 +343,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
+        dRef.child(temp_key).child("status").setValue(StatusManager.fillStatusItem(post));
         dRef.child(temp_key).child(myAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

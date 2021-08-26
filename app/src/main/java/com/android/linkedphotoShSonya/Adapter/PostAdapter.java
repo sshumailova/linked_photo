@@ -260,7 +260,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         @Override
         public void onClick(View view) {
             NewPost newPost = mainPostList.get(getAdapterPosition());
-            dbManager.updateTotalViews(newPost);
+            dbManager.updateTotalCounter(DbManager.TOTAL_VIEWS,newPost.getKey(),newPost.getTotal_views());
             // dbManager.updateFav(newPost);
             int totalViews = Integer.parseInt(newPost.getTotal_views());
             totalViews++;

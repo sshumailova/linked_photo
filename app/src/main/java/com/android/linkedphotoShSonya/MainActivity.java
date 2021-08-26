@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -32,6 +33,8 @@ import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
+import com.android.linkedphotoShSonya.filter.FilterActivity;
+import com.android.linkedphotoShSonya.filter.FilterManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private NavigationView nav_view;
     private FirebaseAuth mAuth;
     private TextView userEmail;
+    private TextView tvfilterInfo;
     private AlertDialog dialog;
     private DrawerLayout drawerLayout;
     private Toolbar toolbar;
@@ -70,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public String current_cat = MyConstants.ALL_PHOTOS;
     private AccountHelper accountHelper;
     private ImageView imPhoto;
+    private ImageButton imCloseFilter;
     private FloatingActionButton newAdItem;
     private MenuItem myAdsItem, myFavsItem;
     private AdView adView;
@@ -168,6 +173,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void init() {
         preferences=getSharedPreferences(MyConstants.MAIN_PREF,MODE_PRIVATE);
         filterHideContainer=findViewById(R.id.filterHideLayout);
+        tvfilterInfo=findViewById(R.id.tvFilterInfo);
+        imCloseFilter=findViewById(R.id.imCloseFilter);
         setOnItemClickCustom();
         rcView = findViewById(R.id.rcView);
         rcView.setLayoutManager(new GridLayoutManager(this, 1));//тут можно указать как будут выглядеть элементы в recyclerView обычно делают LinearLayoutManager
@@ -202,6 +209,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //dbManager.getDataFromDb("notes");
         postAdapter.setDbManager(dbManager);
         onToolbarItemClick();
+        imCloseFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FilterManager.clearFilter(preferences);
+                filterHideContainer.setVisibility(View.GONE);
+            }
+        });
     }
 private void showFilterDialog(){
         String filter=preferences.getString(MyConstants.MAIN_FILTER,"empty");
@@ -210,6 +224,7 @@ private void showFilterDialog(){
         }
         else {
             filterHideContainer.setVisibility(View.VISIBLE);
+            tvfilterInfo.setText(FilterManager.getFilterText(filter));
         }
 
 }
@@ -436,7 +451,7 @@ private void onToolbarItemClick(){
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if(item.getItemId()==R.id.filter){
-                    Intent intent=new Intent(MainActivity.this,FilterActivity.class);
+                    Intent intent=new Intent(MainActivity.this, FilterActivity.class);
                     startActivity(intent);
                 }
                 return false;

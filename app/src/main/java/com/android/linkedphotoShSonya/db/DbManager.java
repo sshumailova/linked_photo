@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -36,6 +37,7 @@ public class DbManager {
     public static final String USER_FAV_ID = "iser_fav_id";
     public static final String ORDER_BY_CAT_TIME = "/status/catTime";
     public static final String ORDER_BY_TIME = "/status/filter_by_time";
+    public static final String TOTAL_VIEWS = "/status/totalViews";
     private Context context;
     private Query mQuery;
     private List<NewPost> newPostList;
@@ -213,21 +215,18 @@ public class DbManager {
 //        int k = newPostList.size();
 //    }
 
-    public void updateTotalViews(final NewPost newPost) {
+    public void updateTotalCounter(final String counterPath,String key,String counter) {// когда открываю объявление для просмотра
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
-        int total_views;
+        int totalCounter;
         try {
-            total_views = Integer.parseInt(newPost.getTotal_views());
+            totalCounter = Integer.parseInt(counter);
 
         } catch (NumberFormatException e) {
-            total_views = 0;
+            totalCounter= 0;
         }
-        total_views++;
-        StatusItem statusItem = new StatusItem();
-        statusItem.totalViews = String.valueOf(total_views);
-        statusItem.catTime = newPost.getCat() + "_" + newPost.getTime();
-        statusItem.filter_by_time=newPost.getTime();
-        dRef.child(newPost.getKey()).child("status").setValue(statusItem);
+        totalCounter++;
+
+        dRef.child(key).child(counterPath).setValue(String.valueOf(totalCounter));
     }
 
     public void readDataUpdate() {

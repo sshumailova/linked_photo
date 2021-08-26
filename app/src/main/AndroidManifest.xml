@@ -15,7 +15,7 @@
         android:theme="@style/AppTheme.NoToolBar"
         tools:replace="android:theme">
         <activity
-            android:name=".FilterActivity" android:theme="@style/FilterTheme">
+            android:name=".filter.FilterActivity" android:theme="@style/FilterTheme">
         </activity>
 
         <activity android:name=".screens.ChooseImageActiviry" />

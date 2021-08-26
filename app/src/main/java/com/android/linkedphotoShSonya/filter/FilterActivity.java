@@ -1,4 +1,4 @@
-package com.android.linkedphotoShSonya;
+package com.android.linkedphotoShSonya.filter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.databinding.ActivityFilterBinding;
 import com.android.linkedphotoShSonya.utils.CountryManager;
 import com.android.linkedphotoShSonya.utils.DialogHelper;
@@ -35,7 +36,7 @@ public class FilterActivity extends AppCompatActivity {
     public void onClickAddFilter(View view) {
         String filter = preferences.getString(MyConstants.MAIN_FILTER, "empty");
         if (!filter.equals("empty")) {
-            savePrefData("empty");
+            FilterManager.clearFilter(preferences);
             rootElement.bAddFilter.setText(R.string.use_filter);
         } else {
             checkEmptyField();
@@ -96,19 +97,13 @@ public class FilterActivity extends AppCompatActivity {
         }
     }
 
-    private void savePrefData(String saveData) {
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(MyConstants.MAIN_FILTER, saveData);
-        editor.apply();
-    }
-
     private void checkEmptyField() {
         String country = rootElement.tvCountry.getText().toString();
         if (country.equals(getString(R.string.select_country_f_title))) {
             Toast.makeText(this, "Country not selected!", Toast.LENGTH_SHORT).show();
         } else if (!country.equals(getString(R.string.select_country_f_title))) {
             String filter = createFilter();
-            savePrefData(filter);
+           FilterManager.saveFilter(filter,preferences);
             Log.d("MyLog", "filter " + filter);
             rootElement.bAddFilter.setText(R.string.cancel_use_filter);
         } else {

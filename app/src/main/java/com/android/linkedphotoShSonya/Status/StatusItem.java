@@ -1,4 +1,4 @@
-package com.android.linkedphotoShSonya.db;
+package com.android.linkedphotoShSonya.Status;
 
 public class StatusItem {
 
@@ -9,6 +9,7 @@ public class StatusItem {
     public String disc_time="";
     public String country_disc_time="";
     public String country_city_disc_time="";
+
 
 
 
