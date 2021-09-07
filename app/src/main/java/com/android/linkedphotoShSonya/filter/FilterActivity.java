@@ -34,7 +34,7 @@ public class FilterActivity extends AppCompatActivity {
     }
 
     public void onClickAddFilter(View view) {
-        String filter = preferences.getString(MyConstants.MAIN_FILTER, "empty");
+        String filter = preferences.getString(MyConstants.TEXT_FILTER, "empty");
         if (!filter.equals("empty")) {
             FilterManager.clearFilter(preferences);
             rootElement.bAddFilter.setText(R.string.use_filter);
@@ -50,14 +50,14 @@ public class FilterActivity extends AppCompatActivity {
             ab.setDisplayHomeAsUpEnabled(true);
         }
         preferences = getSharedPreferences(MyConstants.MAIN_PREF, MODE_PRIVATE);
-        String filter = preferences.getString(MyConstants.MAIN_FILTER, "empty");
+        String filter = preferences.getString(MyConstants.TEXT_FILTER, "empty");
         if (!filter.equals("empty")) {
             rootElement.bAddFilter.setText(R.string.cancel_use_filter);
         }
     }
 
     private void fillFilter() {
-        String filter = preferences.getString(MyConstants.MAIN_FILTER, "empty");
+        String filter = preferences.getString(MyConstants.TEXT_FILTER, "empty");
         if(filter.equals("empty")){
             return;
         }
@@ -102,24 +102,17 @@ public class FilterActivity extends AppCompatActivity {
         if (country.equals(getString(R.string.select_country_f_title))) {
             Toast.makeText(this, "Country not selected!", Toast.LENGTH_SHORT).show();
         } else if (!country.equals(getString(R.string.select_country_f_title))) {
-            String filter = createFilter();
-           FilterManager.saveFilter(filter,preferences);
-            Log.d("MyLog", "filter " + filter);
+            String textFilter = FilterManager.createTextFilter(rootElement,this);
+           String orderBy= FilterManager.createOrderByFilter(textFilter);
+           String filter= FilterManager.createFilter(textFilter);
+           FilterManager.saveFilter(textFilter,preferences,MyConstants.TEXT_FILTER);
+           FilterManager.saveFilter(orderBy,preferences,MyConstants.ORDER_BY_FILTER);
+           FilterManager.saveFilter(filter,preferences,MyConstants.FILTER);
             rootElement.bAddFilter.setText(R.string.cancel_use_filter);
         } else {
             Toast.makeText(this, "Wrong filter!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private String createFilter() {
-        String country = rootElement.tvCountry.getText().toString();
-        String city = rootElement.tvCity.getText().toString();
-        if (country.equals(getString(R.string.select_country_f_title))) {
-            country = "empty";
-        }
-        if (city.equals(getString(R.string.select_city_f_title))) {
-            city = "empty";
-        }
-        return country + "|" + city;
-    }
+
 }

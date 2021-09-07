@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+import java.util.Locale;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> {
     public static final String TAG = "MyLog";
@@ -86,7 +87,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     @Override
     public int getItemViewType(int position) {
-        if (mainPostList.get(position).getUid().equals(NEXT_PAGE)||mainPostList.get(position).getUid().equals(BACK_PAGE)) {
+        if (mainPostList.get(position).getUid().equals(NEXT_PAGE) || mainPostList.get(position).getUid().equals(BACK_PAGE)) {
             myViewType = 1;
         } else {
             myViewType = 0;
@@ -126,16 +127,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     public void updateAdapter(List<NewPost> listData) {
         mainPostList.clear();
-            if (!isStartPage && listData.size() == MyConstants.ADS_LIMIT || adsButtonState == NEXT_ADS_B && !isStartPage) {
-                NewPost tempPost=new NewPost();
-                tempPost.setUid(BACK_PAGE);
-                mainPostList.add(tempPost);
-            } else if (!isStartPage && listData.size() < MyConstants.ADS_LIMIT && adsButtonState == BACK_ADS_B) {
-                loadFirstPage();
-            }
+        if (!isStartPage && listData.size() == MyConstants.ADS_LIMIT || adsButtonState == NEXT_ADS_B && !isStartPage) {
+            NewPost tempPost = new NewPost();
+            tempPost.setUid(BACK_PAGE);
+            mainPostList.add(tempPost);
+        } else if (!isStartPage && listData.size() < MyConstants.ADS_LIMIT && adsButtonState == BACK_ADS_B) {
+            loadFirstPage();
+        }
 
         if (listData.size() == MyConstants.ADS_LIMIT) {
-            NewPost tempPost=new NewPost();
+            NewPost tempPost = new NewPost();
             tempPost.setUid(NEXT_PAGE);
             listData.add(tempPost);
         }
@@ -147,7 +148,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     private void loadFirstPage() {
         isStartPage = true;
-        dbManager.getDataFromDb(((MainActivity) context).current_cat, "0");
+        dbManager.getDataFromDb(((MainActivity) context).current_cat, "", false);
     }
 
     public void setDbManager(DbManager dbManager) {
@@ -191,7 +192,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    dbManager.getBackFromDb(((MainActivity) context).current_cat, mainPostList.get(1).getTime());
+                    String firstTitleTime = mainPostList.get(1).getDisc().toLowerCase() + "_" + mainPostList.get(1).getTime();
+                    dbManager.getDataFromDb(((MainActivity) context).current_cat,
+                            firstTitleTime,
+                            true);
                     ((MainActivity) context).rcView.scrollToPosition(0);
                     adsButtonState = BACK_ADS_B;
 
@@ -203,7 +207,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    dbManager.getDataFromDb(((MainActivity) context).current_cat, mainPostList.get(mainPostList.size() - 2).getTime());
+                    String lastTitleTime = mainPostList.get(mainPostList.size() - 2).getDisc().toLowerCase() + "_" +
+                            mainPostList.get(mainPostList.size() - 2).getTime();
+
+                    dbManager.getDataFromDb(((MainActivity) context).current_cat, lastTitleTime, false);
                     ((MainActivity) context).rcView.scrollToPosition(0);
                     isStartPage = false;
                     adsButtonState = NEXT_ADS_B;
@@ -260,7 +267,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         @Override
         public void onClick(View view) {
             NewPost newPost = mainPostList.get(getAdapterPosition());
-            dbManager.updateTotalCounter(DbManager.TOTAL_VIEWS,newPost.getKey(),newPost.getTotal_views());
+            dbManager.updateTotalCounter(DbManager.TOTAL_VIEWS, newPost.getKey(), newPost.getTotal_views());
             // dbManager.updateFav(newPost);
             int totalViews = Integer.parseInt(newPost.getTotal_views());
             totalViews++;

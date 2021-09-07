@@ -1,6 +1,7 @@
 package com.android.linkedphotoShSonya.db;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,8 +36,8 @@ public class DbManager {
     public static final String MY_FAv_PATh = "my_fav";
     public static final String FAv_ADS_PATh = "fav_path";
     public static final String USER_FAV_ID = "iser_fav_id";
-    public static final String ORDER_BY_CAT_TIME = "/status/catTime";
-    public static final String ORDER_BY_TIME = "/status/filter_by_time";
+    public static final String ORDER_BY_CAT_DISC_TIME = "/status/cat_disc_time";
+    public static final String ORDER_BY_DISC_TIME = "/status/disc_time";
     public static final String TOTAL_VIEWS = "/status/totalViews";
     private Context context;
     private Query mQuery;
@@ -47,7 +48,11 @@ public class DbManager {
     private FirebaseAuth mAuth;
     private long cat_ads_counter = 0;
     String text;
+    private DatabaseReference mainNode;
+    private String filter;
+    private String orderByFilter;
     private int deleteImageCounter = 0;
+
 
     public DbManager(DataSender dataSender, Context context) {
 
@@ -57,77 +62,59 @@ public class DbManager {
         db = FirebaseDatabase.getInstance();
         fs = FirebaseStorage.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        mainNode = db.getReference(MAIN_ADS_PATH);
+
 
     }
 
-    //    public void getMyFavs() {
-//        if (mAuth.getUid() != null) {
-//            DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
-//                mQuery = dbRef.orderByChild(FAv_ADS_PATh+"/"+mAuth.getUid()+"/"+USER_FAV_ID).equalTo(mAuth.getUid());
-//            readDataUpdate();
-//        }
-//
-//    }
-    public void getDataFromDb(String cat, String lastTime) {
+    public void onResume(SharedPreferences preferences) {
+        filter = preferences.getString(MyConstants.FILTER, "");
+        orderByFilter = preferences.getString(MyConstants.ORDER_BY_FILTER, "");
+    }
+    public void clearFilter(){
+        filter="";
+        orderByFilter="";
+    }
+
+    public void getMyAds(String orderBy) {
+        mQuery = mainNode.orderByChild(orderBy).equalTo(mAuth.getUid());
+        readDataUpdate();
+
+    }
+
+    public void getDataFromDb(String cat, String lastTitleTime, boolean lastPage) {
+        if (mAuth.getUid() == null) {
+            return;
+        }
+        String orderBy = (cat.equals(MyConstants.ALL_PHOTOS)) ? ORDER_BY_DISC_TIME : ORDER_BY_CAT_DISC_TIME;
+        cat+="_";
+        if (orderBy.equals(ORDER_BY_DISC_TIME)) {
+            cat = "";
+        }
+        if (!orderByFilter.isEmpty()) {
+            orderBy = (cat.isEmpty()) ? "/status/" + orderByFilter : "/status/" + "cat_" + orderByFilter;
+
+        }
+        Log.d("MyLog", "Filter by : " + cat+filter+lastTitleTime);
+        if (!lastPage) {
+            mQuery = mainNode.orderByChild(orderBy).startAt(cat+ filter).endAt(cat + filter + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+        } else {
+            mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter  + lastTitleTime).limitToFirst(MyConstants.ADS_LIMIT);
+        }
+        readDataUpdate();
+    }
+
+    public void getSearchResult(String searchText) {
         if (mAuth.getUid() == null) {
             return;
         }
         DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
-        if (cat.equals(MyConstants.ALL_PHOTOS)) {
-            if (lastTime.equals("0")) {
-                Log.d("MyLOg","подгружается 0");
-                mQuery = dbRef.orderByChild(ORDER_BY_TIME).limitToLast(MyConstants.ADS_LIMIT);
-            } else {
-                Log.d("MyLOg","подгружается не ");
-                mQuery = dbRef.orderByChild(ORDER_BY_TIME).endAt(lastTime).limitToLast(MyConstants.ADS_LIMIT);
-            }
-        } else if (cat.equals(MyConstants.MY_ADS)) {
-            mQuery = dbRef.orderByChild(mAuth.getUid() + "/post/uid").equalTo(mAuth.getUid());
-        } else if (cat.equals(MyConstants.MY_FAVS)) {
-            Log.d("MyLOg","подгружается лайл");
-            mQuery = dbRef.orderByChild(FAv_ADS_PATh + "/" + mAuth.getUid() + "/" + USER_FAV_ID).equalTo(mAuth.getUid());
-//        } else {
-//            if (lastTime.equals("0")) {
-//                mQuery = dbRef.orderByChild(ORDER_BY_CAT_TIME).startAt(cat).endAt(cat + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
-//            } else {
-//                mQuery = dbRef.orderByChild(ORDER_BY_CAT_TIME).startAt(cat).endAt(cat + "\uf8ff");
-//            }
-//
-       }
-        readDataUpdate();
-    }
-    public void getSearchResult(String searchText){
-        if (mAuth.getUid() == null) {
-            return;
-        }
-        DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
-        mQuery = dbRef.orderByChild( "/status/disc_time").startAt(searchText).endAt(searchText + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+        mQuery = dbRef.orderByChild("/status/" + orderByFilter).startAt(filter + searchText).endAt(filter + searchText + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
         readDataUpdate();
 
     }
-    public void getBackFromDb(String cat, String lastTime) {
-        if (mAuth.getUid() == null) {
-            return;
-        }
-        DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
-        if (cat.equals(MyConstants.ALL_PHOTOS)) {
-                mQuery = dbRef.orderByChild(ORDER_BY_TIME).startAt(lastTime).limitToFirst(MyConstants.ADS_LIMIT);
-            Log.d("MyLOg","подгружается back");
-            }
-        else if (cat.equals(MyConstants.MY_ADS)) {
-            mQuery = dbRef.orderByChild(mAuth.getUid() + "/post/uid").equalTo(mAuth.getUid());
-        } else if (cat.equals(MyConstants.MY_FAVS)) {
-            mQuery = dbRef.orderByChild(FAv_ADS_PATh + "/" + mAuth.getUid() + "/" + USER_FAV_ID).equalTo(mAuth.getUid());
-//        } else {
-//            if (lastTime.equals("0")) {
-//                mQuery = dbRef.orderByChild(ORDER_BY_CAT_TIME).startAt(cat).endAt(cat + "\uf8ff");
-//            } else {
-//                mQuery = dbRef.orderByChild(ORDER_BY_CAT_TIME).startAt(cat).endAt(cat + "\uf8ff");
-//            }
 
-        }
-        readDataUpdate();
-    }
+
     public void deleteItem(final NewPost newPost) {
         StorageReference sRef = null;
         switch (deleteImageCounter) {
@@ -215,14 +202,14 @@ public class DbManager {
 //        int k = newPostList.size();
 //    }
 
-    public void updateTotalCounter(final String counterPath,String key,String counter) {// когда открываю объявление для просмотра
+    public void updateTotalCounter(final String counterPath, String key, String counter) {// когда открываю объявление для просмотра
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
         int totalCounter;
         try {
             totalCounter = Integer.parseInt(counter);
 
         } catch (NumberFormatException e) {
-            totalCounter= 0;
+            totalCounter = 0;
         }
         totalCounter++;
 
@@ -346,4 +333,11 @@ public class DbManager {
         });
     }
 
+    public String getMyAdsNode() {
+        return mAuth.getUid() + "/post/uid";
+    }
+
+    public String getMyFavAdsNode() {
+        return FAv_ADS_PATh + "/" + mAuth.getUid() + "/" + USER_FAV_ID;
+    }
 }

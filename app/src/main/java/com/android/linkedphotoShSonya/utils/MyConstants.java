@@ -18,6 +18,8 @@ public class MyConstants {
     public static final String TOTAL_VIEWS="total_views"+ MainActivity.class.getName();
     public static final String EDIT_STATE="edit_state"+ MainActivity.class.getName();
     public static final String MAIN_PREF ="main_shared_pref";
-    public static final String MAIN_FILTER ="main_shared_filter";
+    public static final String TEXT_FILTER ="main_shared_text_filter";
+    public static final String ORDER_BY_FILTER ="main_shared_order_by_text_filter";
+    public static final String FILTER ="main_shared_filter";
 
 }

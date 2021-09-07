@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     protected void onResume() {
         super.onResume();
+        dbManager.onResume(preferences);
         if (adView != null) {
             adView.resume();
         }
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Picasso.get().load(account.getPhotoUrl()).into(imPhoto);
         }
         showFilterDialog();
-        dbManager.getDataFromDb(current_cat, "0");
+        dbManager.getDataFromDb(current_cat, "",false);
 
     }
 
@@ -214,11 +215,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View view) {
                 FilterManager.clearFilter(preferences);
                 filterHideContainer.setVisibility(View.GONE);
+                dbManager.clearFilter();
             }
         });
     }
 private void showFilterDialog(){
-        String filter=preferences.getString(MyConstants.MAIN_FILTER,"empty");
+        String filter=preferences.getString(MyConstants.TEXT_FILTER,"empty");
+        String orderBy=preferences.getString(MyConstants.ORDER_BY_FILTER,"empty");
+
         if(filter.equals("empty")){
             filterHideContainer.setVisibility(View.GONE);
         }
@@ -289,17 +293,17 @@ private void showFilterDialog(){
             case id_my_files:
                 //current_cat = "Мои файлы";
                 current_cat = MyConstants.MY_ADS;
-                dbManager.getDataFromDb(current_cat, "0");
+                dbManager.getMyAds(dbManager.getMyAdsNode());
                 break;
             case id_my_fav:
                 current_cat = MyConstants.MY_FAVS;
-                dbManager.getDataFromDb(current_cat, "0");
-                ;
+                dbManager.getMyAds(dbManager.getMyFavAdsNode());
+
                 break;
             case id_all_files:
                 //current_cat = "Лента";
                 current_cat = MyConstants.ALL_PHOTOS;
-                dbManager.getDataFromDb(current_cat, "2");
+                dbManager.getDataFromDb(current_cat, "",false);
                 break;
             case id_sing_up:
                 signUpDialog(R.string.sing_up, R.string.signup_button, R.string.google_sing_up, 0);

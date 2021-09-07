@@ -13,8 +13,7 @@ public class StatusManager {
         String city = post.getCity();
         String disc = post.getDisc().toLowerCase();
 
-        stItem.catTime = cat + "_" + time;
-        stItem.filter_by_time = time;
+        stItem.cat_disc_Time= cat + "_"+disc + time;
         stItem.disc_time = disc + "_" + time;
 
         stItem.country_disc_time = country + "_" + disc + "_" + time;
