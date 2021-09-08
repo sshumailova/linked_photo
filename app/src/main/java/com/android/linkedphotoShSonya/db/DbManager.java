@@ -52,6 +52,7 @@ public class DbManager {
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
+    private String searchText="";
 
 
     public DbManager(DataSender dataSender, Context context) {
@@ -82,7 +83,7 @@ public class DbManager {
 
     }
 
-    public void getDataFromDb(String cat, String lastTitleTime, boolean lastPage) {
+    public void getDataFromDb(String cat, String lastTitleTime) {
         if (mAuth.getUid() == null) {
             return;
         }
@@ -96,23 +97,23 @@ public class DbManager {
 
         }
         Log.d("MyLog", "Filter by : " + cat+filter+lastTitleTime);
-        if (!lastPage) {
-            mQuery = mainNode.orderByChild(orderBy).startAt(cat+ filter).endAt(cat + filter + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
-        } else {
-            mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter  + lastTitleTime).limitToFirst(MyConstants.ADS_LIMIT);
+        String disc=searchText;
+        if(!lastTitleTime.isEmpty()){
+            disc="";
         }
+            mQuery = mainNode.orderByChild(orderBy).startAt(cat+ filter+searchText).endAt(cat + filter +disc+ lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+
         readDataUpdate();
     }
-
-    public void getSearchResult(String searchText) {
-        if (mAuth.getUid() == null) {
-            return;
-        }
-        DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
-        mQuery = dbRef.orderByChild("/status/" + orderByFilter).startAt(filter + searchText).endAt(filter + searchText + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
-        readDataUpdate();
-
-    }
+//    public void getSearchResult(String searchText) {
+//        if (mAuth.getUid() == null) {
+//            return;
+//        }
+//        DatabaseReference dbRef = db.getReference(MAIN_ADS_PATH);
+//        mQuery = dbRef.orderByChild("/status/" + orderByFilter).startAt(filter + searchText).endAt(filter + searchText + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+//        readDataUpdate();
+//
+//    }
 
 
     public void deleteItem(final NewPost newPost) {
@@ -339,5 +340,9 @@ public class DbManager {
 
     public String getMyFavAdsNode() {
         return FAv_ADS_PATh + "/" + mAuth.getUid() + "/" + USER_FAV_ID;
+    }
+
+    public void setSearchText(String searchText) {
+        this.searchText = searchText;
     }
 }

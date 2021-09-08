@@ -17,8 +17,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#F8EFEF"
+        android:background="#FFFFFF"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
+        app:itemIconTint="@color/green"
+        app:itemTextAppearance="@style/NavTextStyle"
+        app:itemTextColor="@color/common_google_signin_btn_text_dark_focused"
         app:menu="@menu/drawe_main_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>

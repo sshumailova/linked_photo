@@ -5,4 +5,5 @@
     <color name="colorAccent">#F8EFEF</color>
     <color name="colorBAck">#F8EFEF</color>
     <color name="imageDbg">#948483</color>
+    <color name="green">#009688</color>
 </resources>

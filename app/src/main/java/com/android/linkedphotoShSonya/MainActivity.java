@@ -103,10 +103,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Picasso.get().load(account.getPhotoUrl()).into(imPhoto);
         }
         showFilterDialog();
-        dbManager.getDataFromDb(current_cat, "",false);
+      resumeCat();
 
     }
-
+private void resumeCat(){
+        switch (current_cat){
+            case MyConstants.MY_ADS:
+                dbManager.getMyAds(dbManager.getMyAdsNode());
+                break;
+            case MyConstants.MY_FAVS:
+                dbManager.getMyAds(dbManager.getMyFavAdsNode());
+                break;
+            default:
+                dbManager.getDataFromDb(current_cat, "");
+        }
+}
     @Override
     protected void onPause() {
         super.onPause();
@@ -303,7 +314,7 @@ private void showFilterDialog(){
             case id_all_files:
                 //current_cat = "Лента";
                 current_cat = MyConstants.ALL_PHOTOS;
-                dbManager.getDataFromDb(current_cat, "",false);
+                dbManager.getDataFromDb(current_cat, "");
                 break;
             case id_sing_up:
                 signUpDialog(R.string.sing_up, R.string.signup_button, R.string.google_sing_up, 0);
@@ -471,7 +482,8 @@ private void onToolbarItemClick(){
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        dbManager.getSearchResult(newText.toLowerCase());
+        dbManager.setSearchText(newText);
+        dbManager.getDataFromDb(current_cat,"");
         return true;
     }
 }

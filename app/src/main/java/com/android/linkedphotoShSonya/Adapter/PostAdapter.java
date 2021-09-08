@@ -32,7 +32,6 @@ import java.util.Locale;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> {
     public static final String TAG = "MyLog";
     public static final String NEXT_PAGE = "nextPage";
-    public static final String BACK_PAGE = "backPage";
     private List<NewPost> mainPostList;
     private Context context;
     private OnItemClickCustom onItemClickCustom;
@@ -42,8 +41,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     private int VIEW_TYPE_END_BUTTON = 1;
     public boolean isStartPage = true;
     private int NEXT_ADS_B = 1;
-    private int BACK_ADS_B = 2;
-    private int adsButtonState = 0;
+private boolean needClear=true;
 
 
     public PostAdapter(List<NewPost> arrayPost, Context context, OnItemClickCustom onItemClickCustom) {
@@ -71,23 +69,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     @Override
     public void onBindViewHolder(@NonNull PostAdapter.ViewHolderData holder, int position) {
 //кнопки для подгрузки вверх и вниз
-        switch (mainPostList.get(position).getUid()) {
-            case NEXT_PAGE:
-                holder.setNextItemData();
-                break;
-            case BACK_PAGE:
-                holder.setBackItemData();
-                break;
-            default:
-                holder.setData(mainPostList.get(position));
-                setFavIfSelected(holder);
-                break;
+        if (NEXT_PAGE.equals(mainPostList.get(position).getUid())) {
+            holder.setNextItemData();
+        } else {
+            holder.setData(mainPostList.get(position));
+            setFavIfSelected(holder);
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (mainPostList.get(position).getUid().equals(NEXT_PAGE) || mainPostList.get(position).getUid().equals(BACK_PAGE)) {
+        if (mainPostList.get(position).getUid().equals(NEXT_PAGE) ) {
             myViewType = 1;
         } else {
             myViewType = 0;
@@ -126,29 +118,37 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     }
 
     public void updateAdapter(List<NewPost> listData) {
-        mainPostList.clear();
-        if (!isStartPage && listData.size() == MyConstants.ADS_LIMIT || adsButtonState == NEXT_ADS_B && !isStartPage) {
-            NewPost tempPost = new NewPost();
-            tempPost.setUid(BACK_PAGE);
-            mainPostList.add(tempPost);
-        } else if (!isStartPage && listData.size() < MyConstants.ADS_LIMIT && adsButtonState == BACK_ADS_B) {
-            loadFirstPage();
+        if(needClear) {
+            mainPostList.clear();
         }
+        else {
+            listData.remove(0);
+        }
+
 
         if (listData.size() == MyConstants.ADS_LIMIT) {
             NewPost tempPost = new NewPost();
             tempPost.setUid(NEXT_PAGE);
             listData.add(tempPost);
         }
-        mainPostList.addAll(listData);
-        notifyDataSetChanged();
-        adsButtonState = 0;
-    }
+        int myArraySize=mainPostList.size()-1;
+        if(myArraySize==-1){
+            myArraySize=0;
+        }
+        mainPostList.addAll(myArraySize,listData);
+        if(myArraySize==0) {
+            notifyDataSetChanged();
+        }
+        else {
+            notifyItemRangeChanged(myArraySize,listData.size());
+        }
+        if(listData.size()<MyConstants.ADS_LIMIT-1&& mainPostList.size()>0){
+            int pos=mainPostList.size()-1;
+            mainPostList.remove(pos);
+            notifyItemRemoved(pos);
+        }
+        needClear=true;
 
-
-    private void loadFirstPage() {
-        isStartPage = true;
-        dbManager.getDataFromDb(((MainActivity) context).current_cat, "", false);
     }
 
     public void setDbManager(DbManager dbManager) {
@@ -188,20 +188,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             tvQuantityLike = itemView.findViewById(R.id.tvQuantityLike);
         }
 
-        public void setBackItemData() {
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String firstTitleTime = mainPostList.get(1).getDisc().toLowerCase() + "_" + mainPostList.get(1).getTime();
-                    dbManager.getDataFromDb(((MainActivity) context).current_cat,
-                            firstTitleTime,
-                            true);
-                    ((MainActivity) context).rcView.scrollToPosition(0);
-                    adsButtonState = BACK_ADS_B;
 
-                }
-            });
-        }
 
         public void setNextItemData() {
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -209,11 +196,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 public void onClick(View view) {
                     String lastTitleTime = mainPostList.get(mainPostList.size() - 2).getDisc().toLowerCase() + "_" +
                             mainPostList.get(mainPostList.size() - 2).getTime();
-
-                    dbManager.getDataFromDb(((MainActivity) context).current_cat, lastTitleTime, false);
-                    ((MainActivity) context).rcView.scrollToPosition(0);
+                    dbManager.getDataFromDb(((MainActivity) context).current_cat, lastTitleTime);
                     isStartPage = false;
-                    adsButtonState = NEXT_ADS_B;
+                  needClear=false;
                 }
             });
         }
