@@ -6,19 +6,7 @@
     android:layout_height="@dimen/nav_header_height"
     android:background="#FFFEFE">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="#F4ECEC"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="parent"></LinearLayout>
-
     <ImageView
-        android:id="@+id/imageView"
         android:layout_width="416dp"
         android:layout_height="187dp"
         android:layout_marginBottom="4dp"
@@ -29,6 +17,17 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/confetti" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="#F4ECEC"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"></LinearLayout>
 
     <ImageView
         android:id="@+id/imPhoto"

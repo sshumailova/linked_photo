@@ -6,4 +6,6 @@
     <color name="colorBAck">#F8EFEF</color>
     <color name="imageDbg">#948483</color>
     <color name="green">#009688</color>
+    <color name="white_dark">#B9B5B5</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -11,6 +11,7 @@ import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.Status.StatusItem;
+import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,27 +44,24 @@ public class DbManager {
     private Query mQuery;
     private List<NewPost> newPostList;
     private DataSender dataSender;
-    private FirebaseDatabase db;
-    private FirebaseStorage fs;
-    private FirebaseAuth mAuth;
+   private MainAppClass mainAppClass;
     private long cat_ads_counter = 0;
     String text;
     private DatabaseReference mainNode;
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
-    private String searchText="";
+    private String searchText = "";
 
 
-    public DbManager(DataSender dataSender, Context context) {
-
-        this.dataSender = dataSender;
+    public DbManager(Context context) {
+        if (context instanceof DataSender) {
+            this.dataSender = (DataSender) context;
+        }
         this.context = context;
         newPostList = new ArrayList<>();
-        db = FirebaseDatabase.getInstance();
-        fs = FirebaseStorage.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-        mainNode = db.getReference(MAIN_ADS_PATH);
+        mainAppClass=((MainAppClass)context.getApplicationContext());
+        mainNode = mainAppClass.getMainDbRef();
 
 
     }
@@ -72,23 +70,24 @@ public class DbManager {
         filter = preferences.getString(MyConstants.FILTER, "");
         orderByFilter = preferences.getString(MyConstants.ORDER_BY_FILTER, "");
     }
-    public void clearFilter(){
-        filter="";
-        orderByFilter="";
+
+    public void clearFilter() {
+        filter = "";
+        orderByFilter = "";
     }
 
     public void getMyAds(String orderBy) {
-        mQuery = mainNode.orderByChild(orderBy).equalTo(mAuth.getUid());
+        mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();
 
     }
 
     public void getDataFromDb(String cat, String lastTitleTime) {
-        if (mAuth.getUid() == null) {
+        if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
         String orderBy = (cat.equals(MyConstants.ALL_PHOTOS)) ? ORDER_BY_DISC_TIME : ORDER_BY_CAT_DISC_TIME;
-        cat+="_";
+        cat += "_";
         if (orderBy.equals(ORDER_BY_DISC_TIME)) {
             cat = "";
         }
@@ -96,12 +95,12 @@ public class DbManager {
             orderBy = (cat.isEmpty()) ? "/status/" + orderByFilter : "/status/" + "cat_" + orderByFilter;
 
         }
-        Log.d("MyLog", "Filter by : " + cat+filter+lastTitleTime);
-        String disc=searchText;
-        if(!lastTitleTime.isEmpty()){
-            disc="";
+        Log.d("MyLog", "Filter by : " + cat + filter + lastTitleTime);
+        String disc = searchText;
+        if (!lastTitleTime.isEmpty()) {
+            disc = "";
         }
-            mQuery = mainNode.orderByChild(orderBy).startAt(cat+ filter+searchText).endAt(cat + filter +disc+ lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+        mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter + searchText).endAt(cat + filter + disc + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
 
         readDataUpdate();
     }
@@ -121,7 +120,7 @@ public class DbManager {
         switch (deleteImageCounter) {
             case 0:
                 if (!newPost.getImageId().equals("empty")) {
-                    sRef = fs.getReferenceFromUrl(newPost.getImageId());
+                    sRef = mainAppClass.getFs().getReferenceFromUrl(newPost.getImageId());
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
                     deleteImageCounter++;
@@ -131,7 +130,7 @@ public class DbManager {
                 break;
             case 1:
                 if (!newPost.getImageId2().equals("empty")) {
-                    sRef = fs.getReferenceFromUrl(newPost.getImageId2());
+                    sRef = mainAppClass.getFs().getReferenceFromUrl(newPost.getImageId2());
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
                     deleteImageCounter++;
@@ -141,7 +140,7 @@ public class DbManager {
                 break;
             case 2:
                 if (!newPost.getImageId3().equals("empty")) {
-                    sRef = fs.getReferenceFromUrl(newPost.getImageId3());
+                    sRef = mainAppClass.getFs().getReferenceFromUrl(newPost.getImageId3());
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
                     deleteDBItem(newPost);
@@ -173,9 +172,10 @@ public class DbManager {
     }
 
     private void deleteDBItem(NewPost newPost) {
-        DatabaseReference dbRef = db.getReference(DbManager.MAIN_ADS_PATH);
+        DatabaseReference dbRef =  mainAppClass.getDb().getReference(DbManager.MAIN_ADS_PATH);
         dbRef.child(newPost.getKey()).child("status").removeValue();
-        dbRef.child(newPost.getKey()).child(mAuth.getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+        if(mainAppClass.getAuth().getUid()==null){return;}
+        dbRef.child(newPost.getKey()).child(mainAppClass.getAuth().getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(context, R.string.item_deleted, Toast.LENGTH_SHORT).show();
@@ -231,9 +231,9 @@ public class DbManager {
                     }
 
                     StatusItem statusItem = ds.child("status").getValue(StatusItem.class);
-                    String uid = mAuth.getUid();
+                    String uid =mainAppClass.getAuth().getUid();
                     if (uid != null) {
-                        String favUid = (String) ds.child(FAv_ADS_PATh).child(mAuth.getUid()).child(USER_FAV_ID).getValue();
+                        String favUid = (String) ds.child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).child(USER_FAV_ID).getValue();
                         if (newPost != null) {
                             newPost.setFavCounter(ds.child(FAv_ADS_PATh).getChildrenCount());
 
@@ -301,12 +301,12 @@ public class DbManager {
 
 
     public void addFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
-        if (mAuth.getUid() == null) {
+        if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
-        dRef.child(newPost.getKey()).child(FAv_ADS_PATh).child(mAuth.getUid()).child(USER_FAV_ID).
-                setValue(mAuth.getUid()).addOnCompleteListener(new OnCompleteListener<Void>() {
+        dRef.child(newPost.getKey()).child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).child(USER_FAV_ID).
+                setValue(mainAppClass.getAuth().getUid()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull @NotNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -319,11 +319,11 @@ public class DbManager {
     }
 
     public void deleteFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
-        if (mAuth.getUid() == null) {
+        if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
-        dRef.child(newPost.getKey()).child(FAv_ADS_PATh).child(mAuth.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+        dRef.child(newPost.getKey()).child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull @NotNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -335,11 +335,11 @@ public class DbManager {
     }
 
     public String getMyAdsNode() {
-        return mAuth.getUid() + "/post/uid";
+        return mainAppClass.getAuth().getUid() + "/post/uid";
     }
 
     public String getMyFavAdsNode() {
-        return FAv_ADS_PATh + "/" + mAuth.getUid() + "/" + USER_FAV_ID;
+        return FAv_ADS_PATh + "/" + mainAppClass.getAuth().getUid() + "/" + USER_FAV_ID;
     }
 
     public void setSearchText(String searchText) {

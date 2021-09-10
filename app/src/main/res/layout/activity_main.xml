@@ -8,9 +8,12 @@
     tools:openDrawer="start"
     android:id="@+id/drawerLayout"
    >
-<include layout="@layout/main_content"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+
+    <include
+        android:id="@+id/mainContent"
+        layout="@layout/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
@@ -19,8 +22,6 @@
         android:layout_gravity="start"
         android:background="#FFFFFF"
         android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header"
-        app:itemIconTint="@color/green"
         app:itemTextAppearance="@style/NavTextStyle"
         app:itemTextColor="@color/common_google_signin_btn_text_dark_focused"
         app:menu="@menu/drawe_main_menu" />

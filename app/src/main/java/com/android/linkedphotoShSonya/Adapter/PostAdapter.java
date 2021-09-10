@@ -17,17 +17,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.linkedphotoShSonya.db.DbManager;
-import com.android.linkedphotoShSonya.EditActivity;
+import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.R;
-import com.android.linkedphotoShSonya.ShowLayoutActivityActivity;
+import com.android.linkedphotoShSonya.act.ShowLayoutActivityActivity;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-import java.util.Locale;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> {
     public static final String TAG = "MyLog";

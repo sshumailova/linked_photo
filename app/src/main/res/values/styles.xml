@@ -24,5 +24,8 @@
         <item name="fontFamily">sans-serif</item>
 
     </style>
+    <style name="MainToolBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorControlNormal">@color/green</item>
 
+    </style>
 </resources>

@@ -75,7 +75,6 @@ public class FilterActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {//стрелка в меню- возвращает назад
             finish();
-
         }
         return super.onOptionsItemSelected(item);
     }
@@ -112,6 +111,7 @@ public class FilterActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Wrong filter!", Toast.LENGTH_SHORT).show();
         }
+finish();
     }
 
 

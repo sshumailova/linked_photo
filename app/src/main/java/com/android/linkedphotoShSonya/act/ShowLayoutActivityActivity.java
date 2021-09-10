@@ -1,4 +1,4 @@
-package com.android.linkedphotoShSonya;
+package com.android.linkedphotoShSonya.act;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.utils.MyConstants;
@@ -50,7 +51,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
 
     private void init() {
         mAuth = FirebaseAuth.getInstance();
-        dbManager = new DbManager(null, this);
+        dbManager = new DbManager( this);
         imagesUris = new ArrayList<>();
         // tvImagesCounter=findViewById(R.id.tvImagedCounter2);
         ViewPager vp = findViewById(R.id.view_pager);

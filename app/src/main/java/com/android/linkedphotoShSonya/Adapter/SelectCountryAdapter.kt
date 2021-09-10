@@ -1,14 +1,12 @@
 package com.android.linkedphotoShSonya.Adapter
 
 import android.app.AlertDialog
-import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.android.linkedphotoShSonya.EditActivity
 import com.android.linkedphotoShSonya.R
 
 class SelectCountryAdapter (val dialog:AlertDialog,val tvTextView: TextView): RecyclerView.Adapter<SelectCountryAdapter.ItemHolder>() {

@@ -1,4 +1,4 @@
-package com.android.linkedphotoShSonya;
+package com.android.linkedphotoShSonya.act;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -18,11 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
+import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.Status.StatusManager;
 import com.android.linkedphotoShSonya.databinding.EditLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
-import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.CountryManager;
 import com.android.linkedphotoShSonya.utils.DialogHelper;
@@ -51,8 +51,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private StorageReference mstorageRef;
     private String[] uploadUri = new String[3];
     private String[] uploadNewUri = new String[3];
-    private DatabaseReference dRef;
-    private FirebaseAuth myAuth;
     private boolean edit_state = false;
     private String temp_cat = "";
     private String temp_uid = "";
@@ -68,6 +66,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private final int MAX_UPOLOAD_IMAGE_SIZE = 1920;
     private ImagesManager imagesManager;
     private boolean isImagesLoaded = false;
+    private MainAppClass mainAppClass;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,6 +78,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void init() {
+        mainAppClass=(MainAppClass)getApplicationContext();
         imagesManager = new ImagesManager(this, this);
         imagesUris = new ArrayList<>();
         bitMapArrayList = new ArrayList<>();
@@ -96,7 +96,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 rootElement.tvImagedCounter.setVisibility(View.VISIBLE);
                 rootElement.tvImagedCounter.setText(dataText);
             }
-
 
             public void onPageScrollStateChanged(int state) {
 

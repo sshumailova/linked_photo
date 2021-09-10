@@ -117,6 +117,7 @@
         android:clickable="true"
         android:onClick="onClickSavePost"
         android:src="@drawable/ic_save"
+        android:theme="@style/MainToolBar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
