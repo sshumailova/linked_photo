@@ -67,6 +67,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private ImagesManager imagesManager;
     private boolean isImagesLoaded = false;
     private MainAppClass mainAppClass;
+    private NewPost post;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,7 +107,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         uploadUri[2] = "empty";
         pd = new ProgressDialog(this);
         pd.setMessage("Идет загрузка...");
-        mstorageRef = FirebaseStorage.getInstance().getReference("Images");
+        mstorageRef = mainAppClass.getFs().getReference("Images");
 
     }
 
@@ -259,16 +260,16 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
     private void savePost(NewPost post) {
 
-        String key = dRef.push().getKey();
+        String key = mainAppClass.getMainDbRef().push().getKey();
         post.setKey(key);
         post.setTime(String.valueOf(System.currentTimeMillis()));
-        post.setUid(myAuth.getUid());
+        post.setUid(mainAppClass.getAuth().getUid());
         post.setCat("notes");
         post.setTotal_views("0");
         if (key != null) {
 
-            dRef.child(key).child(myAuth.getUid()).child("post").setValue(post);
-            dRef.child(key).child("status").setValue(StatusManager.fillStatusItem(post));
+            mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
+            mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
         }
     }
 
@@ -313,9 +314,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void publishPost() {
-        myAuth = FirebaseAuth.getInstance();
-        if (myAuth.getUid() != null) {
-            dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
             NewPost post = new NewPost();
             post.setImageId(uploadUri[0]);
             post.setImageId2(uploadUri[1]);
@@ -331,10 +329,10 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             }
         }
 
-    }
 
     private void updatePost(NewPost post) {
-        if (myAuth.getUid() == null) {
+        this.post = post;
+        if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
         post.setKey(temp_key);
@@ -342,8 +340,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
-        dRef.child(temp_key).child("status").setValue(StatusManager.fillStatusItem(post));
-        dRef.child(temp_key).child(myAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
+        mainAppClass.getMainDbRef().child(temp_key).child("status").setValue(StatusManager.fillStatusItem(post));
+        mainAppClass.getMainDbRef().child(temp_key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
