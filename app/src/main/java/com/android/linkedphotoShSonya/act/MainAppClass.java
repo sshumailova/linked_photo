@@ -22,7 +22,9 @@ public class MainAppClass extends Application {
     public DatabaseReference getMainDbRef(){
         return db.getReference(DbManager.MAIN_ADS_PATH);
     }
-
+public DatabaseReference getUserDbRef(){
+        return db.getReference(DbManager.USERS);
+}
     public FirebaseDatabase getDb() {
         return db;
     }

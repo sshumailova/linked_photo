@@ -34,6 +34,7 @@ import java.util.List;
 
 public class DbManager {
     public static final String MAIN_ADS_PATH = "main_ads_path";
+    public static final String USERS = "users";
     public static final String MY_FAv_PATh = "my_fav";
     public static final String FAv_ADS_PATh = "fav_path";
     public static final String USER_FAV_ID = "iser_fav_id";
@@ -48,6 +49,7 @@ public class DbManager {
     private long cat_ads_counter = 0;
     String text;
     private DatabaseReference mainNode;
+    private DatabaseReference users;
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
@@ -62,6 +64,8 @@ public class DbManager {
         newPostList = new ArrayList<>();
         mainAppClass=((MainAppClass)context.getApplicationContext());
         mainNode = mainAppClass.getMainDbRef();
+        users=mainAppClass.getUserDbRef();
+
 
 
     }
@@ -310,7 +314,7 @@ public class DbManager {
             @Override
             public void onComplete(@NonNull @NotNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    holder.imFav.setImageResource(R.drawable.ic_fav_selected);
+                    holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
                     newPost.setFav(true);
 
                 }
@@ -327,7 +331,7 @@ public class DbManager {
             @Override
             public void onComplete(@NonNull @NotNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    holder.imFav.setImageResource(R.drawable.ic_fav_not_selected);
+                    holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
                     newPost.setFav(false);
                 }
             }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
@@ -21,6 +23,7 @@ import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
@@ -29,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ShowLayoutActivityActivity extends AppCompatActivity {
     private TextView tvDisc, tvTotalViews, tvTotalLike;
@@ -41,6 +45,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     private NewPost newPost;
     private DbManager dbManager;
     private FirebaseAuth mAuth;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +57,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     private void init() {
         mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager( this);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
         imagesUris = new ArrayList<>();
         // tvImagesCounter=findViewById(R.id.tvImagedCounter2);
         ViewPager vp = findViewById(R.id.view_pager);
@@ -87,7 +93,7 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
             }
             tvDisc.setText(newPost.getDisc());
             tvTotalViews.setText(newPost.getTotal_views());
-            if(newPost.isFav()){
+            if(newPost.isFav() || Objects.requireNonNull(currentUser).isAnonymous()  ){
                tvLike.setImageResource(R.drawable.ic_fav_selected);
                 tvTotalLike.setText(String.valueOf(newPost.getFavCounter()));
             }
@@ -118,7 +124,12 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
     }
 
     public void Like(View view) {
-        updateFav(newPost);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            if (currentUser.isAnonymous()){
+                return;
+            }}
+                updateFav(newPost);
         setFavCounter(newPost,tvTotalLike);
         }
     public void updateFav(final NewPost newPost) {
@@ -133,7 +144,6 @@ public class ShowLayoutActivityActivity extends AppCompatActivity {
         if (mAuth.getUid() == null) {
             return;
         }
-
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
         dRef.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).child(DbManager.USER_FAV_ID).
                 setValue(mAuth.getUid()).addOnCompleteListener(new OnCompleteListener<Void>() {
