@@ -210,7 +210,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 imagesUris.clear();
                 String[] tempUriArray = getUrisForChoose(data);
                 isImagesLoaded = false;
-                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray));
+                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray),this);
                 for (String s : tempUriArray) {
                     if (!s.equals("empty")) {
                         imagesUris.add(s);

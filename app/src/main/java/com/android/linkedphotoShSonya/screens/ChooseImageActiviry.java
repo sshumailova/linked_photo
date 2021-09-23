@@ -1,22 +1,27 @@
 package com.android.linkedphotoShSonya.screens;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.databinding.ActivityChooseImageActiviryBinding;
+import com.android.linkedphotoShSonya.utils.ImagePicker;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
 
-import com.fxn.pix.Options;
-import com.fxn.pix.Pix;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -24,19 +29,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ChooseImageActiviry extends AppCompatActivity {
+    private ActivityChooseImageActiviryBinding binding;
     private String uriMain = "empty", uri2 = "empty", uri3 = "empty";
     private ImageView imMain, im2, im3;
     private ImageView[] imagesViews = new ImageView[3];
     String[] uris = new String[3];
     private ImagesManager imagesManager;
-    private final int MAX_IMAGE_SIZE = 2000;
     private OnBitMapLoaded onBitMapLoaded;
-    private boolean isImagesLoaded=true;
+    private boolean isImagesLoaded = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_choose_image_activiry);
+        binding = ActivityChooseImageActiviryBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         init();
     }
 
@@ -56,32 +62,6 @@ public class ChooseImageActiviry extends AppCompatActivity {
 
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null ) {
-            ArrayList<String> returnValue = data.getStringArrayListExtra(Pix.IMAGE_RESULTS);
-            if(returnValue==null){return;}
-            switch (requestCode) {
-                case 1:
-                    uris[0] =returnValue.get(0);
-                    isImagesLoaded=false;
-                    imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
-                    //код проверяет большая картнка или нет - можно так же сдлеать(НУЖНО) на две другие
-
-                    break;
-                case 2:
-                    uris[1] = returnValue.get(0);
-                    isImagesLoaded=false;
-                    imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
-                    break;
-                case 3:
-                    uris[2] = returnValue.get(0);
-                    isImagesLoaded=false;
-                    imagesManager.resizeMultiLargeImages(Arrays.asList(uris));
-                    break;
-            }
-        }
-    }
 
     private void OnBitMapLoaded() {
         onBitMapLoaded = new OnBitMapLoaded() {
@@ -90,12 +70,12 @@ public class ChooseImageActiviry extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        for(int i=0;i<bitmap.size();i++){
-                       if(bitmap.get(i)!=null)
-                           imagesViews[i].setImageBitmap(bitmap.get(i));
+                        for (int i = 0; i < bitmap.size(); i++) {
+                            if (bitmap.get(i) != null)
+                                imagesViews[i].setImageBitmap(bitmap.get(i));
 
-                    }
-                        isImagesLoaded=true;
+                        }
+                        isImagesLoaded = true;
                     }
                 });
             }
@@ -103,42 +83,50 @@ public class ChooseImageActiviry extends AppCompatActivity {
     }
 
     public void MainImage(View view) {
-        if(!isImagesLoaded){
+        if (!isImagesLoaded) {
+            Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        getImage(0);
+    }
+
+    public void onClickImage2(View view) {
+        if (!isImagesLoaded) {
             Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
         }
         getImage(1);
     }
 
-    public void onClickImage2(View view) {
-        if(!isImagesLoaded){
-            Toast.makeText(this,  R.string.images_loading, Toast.LENGTH_SHORT).show();
+    public void onClickImage3(View view) {
+        if (!isImagesLoaded) {
+            Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
         }
         getImage(2);
     }
 
-    public void onClickImage3(View view) {
-        if(!isImagesLoaded){
-            Toast.makeText(this,  R.string.images_loading, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        getImage(3);
-    }
-
 
     private void getImage(int index) {
-//        Intent intent = new Intent();
-//        intent.setType("image/*");
-//        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-//        startActivityForResult(intent, index);
-        Options options = Options.init()
-                .setRequestCode(index)                                          //Request code for activity results
-                .setCount(1)                                                   //Number of images to restict selection count
-                .setFrontfacing(false)
-                .setScreenOrientation(Options.SCREEN_ORIENTATION_PORTRAIT)    ; //Orientaion//Custom Path For media Storage
+        ImagePicker.INSTANCE.getImage(uri -> {
+            Log.d("MyLog", "Image selected : " + uri);
+            selectedImage(index, uri);
+            closePixFragment();
+        }, this);
+    }
 
-        Pix.start(ChooseImageActiviry.this, options);
+    private void selectedImage(int index, Uri uri) {
+        uris[index] = uri.toString();
+        isImagesLoaded = false;
+        imagesManager.resizeMultiLargeImages(Arrays.asList(uris), this);
+
+    }
+
+    private void closePixFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+            if (f.isVisible()) getSupportFragmentManager().beginTransaction().remove(f).commit();
+        }
     }
 
     public void onClickBack(View view) {
@@ -183,26 +171,26 @@ public class ChooseImageActiviry extends AppCompatActivity {
             uris[0] = i.getStringExtra(MyConstants.New_POST_INTENT);
             uris[1] = i.getStringExtra(MyConstants.IMAGE_ID2);
             uris[2] = i.getStringExtra(MyConstants.IMAGE_ID3);
-            isImagesLoaded=false;
-           imagesManager.resizeMultiLargeImages(sortImages(uris));
+            isImagesLoaded = false;
+            imagesManager.resizeMultiLargeImages(sortImages(uris), this);
         }
     }
 
-    private  List<String> sortImages(String[] uris) {
-        List<String> tempList =new ArrayList<>();
+    private List<String> sortImages(String[] uris) {
+        List<String> tempList = new ArrayList<>();
         for (int i = 0; i < uris.length; i++) {
             if (uris[i].startsWith("http")) {
-                showHttpImages(uris[i],i);
+                showHttpImages(uris[i], i);
                 tempList.add("empty");
-            }
-else {
-    tempList.add(uris[i]);
+            } else {
+                tempList.add(uris[i]);
             }
         }
-return  tempList;
+        return tempList;
     }
 
     private void showHttpImages(String uri, int position) {
-            Picasso.get().load(uri).into(imagesViews[position]);
+        Picasso.get().load(uri).into(imagesViews[position]);
 
-}}
+    }
+}

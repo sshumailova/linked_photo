@@ -70,7 +70,7 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
 
     public void updateImages(List<String> images) {
 
-        imagesManager.resizeMultiLargeImages(images);
+        imagesManager.resizeMultiLargeImages(images,context);
         Log.d("MyLog", "Update" + images.get(0));
     }
     @Override
