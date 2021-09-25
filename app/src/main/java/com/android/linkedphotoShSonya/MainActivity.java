@@ -49,6 +49,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.squareup.picasso.Picasso;
 
@@ -75,6 +76,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private MenuItem myAdsItem, myFavsItem;
     private SharedPreferences preferences;
     private SignDialog signDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

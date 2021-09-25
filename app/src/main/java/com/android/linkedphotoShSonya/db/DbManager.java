@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -66,8 +67,6 @@ public class DbManager {
         mainNode = mainAppClass.getMainDbRef();
         users=mainAppClass.getUserDbRef();
 
-
-
     }
 
     public void onResume(SharedPreferences preferences) {
@@ -83,7 +82,6 @@ public class DbManager {
     public void getMyAds(String orderBy) {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();
-
     }
 
     public void getDataFromDb(String cat, String lastTitleTime) {
@@ -118,7 +116,15 @@ public class DbManager {
 //
 //    }
 
-
+//    public void creatUser(FirebaseUser firebaseUser, String name) {
+//        User user = new User();
+//        String key = FirebaseDatabase.getInstance().getReference().push().getKey();
+//        user.setKey(key);
+//        user.setId(firebaseUser.getUid());
+//        user.setName(name);
+//          mainAppClass.getMainDbRef().child(key).setValue(user);
+//
+//    }
     public void deleteItem(final NewPost newPost) {
         StorageReference sRef = null;
         switch (deleteImageCounter) {

@@ -8,13 +8,19 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
+import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 
+import com.android.linkedphotoShSonya.db.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class SignDialog {
     private FirebaseAuth auth;
@@ -22,6 +28,9 @@ public class SignDialog {
     private AccountHelper accountHelper;
     private SignAppLayoutBinding binding;//делаем снова bindin что б разгррузить код
     private AlertDialog dialog;
+    private ArrayList<User> userArrayList;
+    private MainAppClass mainAppClass;
+
 
     public SignDialog(FirebaseAuth auth, Activity activity, AccountHelper accountHelper) {
         this.auth = auth;
@@ -48,8 +57,13 @@ public class SignDialog {
     private void showForgetButton(int index) {
         if (index == 0) {
             binding.bForgetPassword.setVisibility(View.GONE);
+            binding.imageId.setVisibility(View.VISIBLE);
+            binding.edName.setVisibility(View.VISIBLE);
         } else {
             binding.bForgetPassword.setVisibility(View.VISIBLE);
+            binding.imageId.setVisibility(View.GONE);
+            binding.edName.setVisibility(View.GONE);
+
         }
     }
     private View.OnClickListener onClickSignWithEmail(final int index){
@@ -65,7 +79,8 @@ public class SignDialog {
                             public void onComplete(@NonNull @NotNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     if (index == 0) {
-                                        accountHelper.signUp(binding.edEmail.getText().toString(),binding.edPassword.getText().toString());
+
+                                        accountHelper.signUp(binding.edEmail.getText().toString(),binding.edPassword.getText().toString(),binding.edName.getText().toString());
                                     } else {
                                         accountHelper.SignIn(binding.edEmail.getText().toString(), binding.edPassword.getText().toString());
                                     }
@@ -100,6 +115,7 @@ public class SignDialog {
             }
         };
     }
+
     private View.OnClickListener onClickForgetButton(){
         return new View.OnClickListener()
         {
@@ -134,4 +150,5 @@ public class SignDialog {
             }
         };
     }
+
 }

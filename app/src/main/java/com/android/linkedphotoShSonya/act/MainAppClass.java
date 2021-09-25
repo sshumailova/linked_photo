@@ -12,6 +12,7 @@ public class MainAppClass extends Application {
     private FirebaseDatabase db;
     private FirebaseStorage fs;
     private FirebaseAuth auth;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -19,12 +20,15 @@ public class MainAppClass extends Application {
         fs = FirebaseStorage.getInstance();
         auth = FirebaseAuth.getInstance();
     }
-    public DatabaseReference getMainDbRef(){
+
+    public DatabaseReference getMainDbRef() {
         return db.getReference(DbManager.MAIN_ADS_PATH);
     }
-public DatabaseReference getUserDbRef(){
+
+    public DatabaseReference getUserDbRef() {
         return db.getReference(DbManager.USERS);
-}
+    }
+
     public FirebaseDatabase getDb() {
         return db;
     }

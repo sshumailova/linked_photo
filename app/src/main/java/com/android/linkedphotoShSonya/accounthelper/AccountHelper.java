@@ -10,6 +10,11 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.Status.StatusManager;
+import com.android.linkedphotoShSonya.act.MainAppClass;
+import com.android.linkedphotoShSonya.db.DbManager;
+import com.android.linkedphotoShSonya.db.User;
+import com.android.linkedphotoShSonya.dialog.SignDialog;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -23,6 +28,8 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthCredential;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,11 +38,13 @@ import org.jetbrains.annotations.NotNull;
 public class AccountHelper {
     private FirebaseAuth mAuth;
     private MainActivity activity;
+
     private GoogleSignInClient signInClient;
     public static final int GOOGLE_SIGN_IN_CODE = 10;
     public static final int GOOGLE_SIGN_IN_LINK_CODE = 15;
     private String temp_email;
     private String temp_password;
+
 
     public AccountHelper(FirebaseAuth mAuth, MainActivity activity) {
         this.mAuth = mAuth;
@@ -43,8 +52,9 @@ public class AccountHelper {
         googleAccountManager();
     }
 
+
     //Sign Up by email
-    public void signUp(String email, String password) {
+    public void signUp(String email, String password, String name) {
         if (!email.equals("") && !password.equals("")) {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
@@ -53,7 +63,12 @@ public class AccountHelper {
                             if (task.isSuccessful()) {
                                 if (mAuth.getCurrentUser() != null) {
                                     FirebaseUser user = mAuth.getCurrentUser();
+                                   // FirebaseDatabase database = FirebaseDatabase.getInstance();
+                                    //DatabaseReference myRef = database.getReference(DbManager.USERS);
+                                  //  myRef.push().child("hhh").setValue("pl");
+                                    creatUser(user, name);
                                     sendEmailVerifocation(user);
+                                    Log.d("MyLog ", "Create user " + name);
                                 }
                                 activity.updateUI();
 
@@ -100,10 +115,10 @@ public class AccountHelper {
     }
 
     public void SignOut() {
-        if(mAuth.getCurrentUser()==null){
+        if (mAuth.getCurrentUser() == null) {
             return;
         }
-        if(mAuth.getCurrentUser().isAnonymous()){
+        if (mAuth.getCurrentUser().isAnonymous()) {
             return;
         }
         mAuth.signOut();
@@ -134,14 +149,15 @@ public class AccountHelper {
         activity.startActivityForResult(signInIntent, code);
     }
 
-    public void SignInFireBaseGoogle(String idToken,int index) {
+    public void SignInFireBaseGoogle(String idToken, int index) {
         GoogleAuthCredential credential = (GoogleAuthCredential) GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    if(index==1)linkEmailAndPassword(temp_email,temp_password);
+                    if (index == 1) linkEmailAndPassword(temp_email, temp_password);
                     Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
+
                     activity.updateUI();
                 } else {
 
@@ -164,6 +180,7 @@ public class AccountHelper {
         builder.create();
         builder.show();
     }
+
     public void showDialogWithLink(int title, int message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(title);
@@ -171,12 +188,13 @@ public class AccountHelper {
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-SignInGoogle(GOOGLE_SIGN_IN_LINK_CODE);
+                SignInGoogle(GOOGLE_SIGN_IN_LINK_CODE);
             }
         });
         builder.create();
         builder.show();
     }
+
     public void showDialogNotVarificate(int title, int message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(title);
@@ -190,8 +208,9 @@ SignInGoogle(GOOGLE_SIGN_IN_LINK_CODE);
         builder.setNegativeButton(R.string.send_email_again, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if(mAuth.getCurrentUser()!=null){
-sendEmailVerifocation(mAuth.getCurrentUser());}
+                if (mAuth.getCurrentUser() != null) {
+                    sendEmailVerifocation(mAuth.getCurrentUser());
+                }
             }
         });
         builder.create();
@@ -221,22 +240,41 @@ sendEmailVerifocation(mAuth.getCurrentUser());}
                     });
         } else {
             Log.d("MyLog", " Please Sign In in your google account");
-            temp_password=password;
-            temp_email=email;
-            showDialogWithLink(R.string.alert,R.string.sign_link_message);
+            temp_password = password;
+            temp_email = email;
+            showDialogWithLink(R.string.alert, R.string.sign_link_message);
         }
     }
-    public void signInAnonimous(){
+
+    public void signInAnonimous() {
         mAuth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     activity.updateUI();
-                }
-                else {
+                } else {
                     //сюда написать что ошибка
                 }
             }
         });
+    }
+
+    private void creatUser(FirebaseUser firebaseUser, String name) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference(DbManager.USERS);
+       // myRef.push().child("empty").setValue("llll");
+        User user = new User();
+        //user.setId(firebaseUser.getUid());
+        //user.setId(firebaseUser.get);
+        //usersDatabaseReference.child(user.getId()).setValue(user);
+        String key = FirebaseDatabase.getInstance().getReference().push().getKey();
+        user.setKey(key);
+        user.setId(FirebaseAuth.getInstance().getUid());
+        user.setName(name);
+        if (key != null) {
+            myRef.push().setValue(user);
+//            mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
+            //           mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
+        }
     }
 }

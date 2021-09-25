@@ -59,4 +59,5 @@
     <string name="cancel_use_filter">Cancel filter</string>
     <string name="select_country_f_title">Select country</string>
     <string name="select_city_f_title">Select city</string>
+    <string name="login">Login</string>
 </resources>

@@ -34,6 +34,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -261,16 +262,17 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private void savePost(NewPost post) {
 
         String key = mainAppClass.getMainDbRef().push().getKey();
+        String key2 = mainAppClass.getUserDbRef().push().getKey();
         post.setKey(key);
         post.setTime(String.valueOf(System.currentTimeMillis()));
         post.setUid(mainAppClass.getAuth().getUid());
         post.setCat("notes");
         post.setTotal_views("0");
         if (key != null) {
-
             mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
             mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
         }
+      // mainAppClass.getUserDbRef().push().child("son").setValue("llll");
     }
 
     public void onClickSavePost(View view) {
