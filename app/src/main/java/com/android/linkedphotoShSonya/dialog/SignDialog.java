@@ -1,6 +1,7 @@
 package com.android.linkedphotoShSonya.dialog;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
@@ -79,7 +80,7 @@ public class SignDialog {
                             public void onComplete(@NonNull @NotNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     if (index == 0) {
-
+                                        Log.d("MyLog","For Index "+ index);
                                         accountHelper.signUp(binding.edEmail.getText().toString(),binding.edPassword.getText().toString(),binding.edName.getText().toString());
                                     } else {
                                         accountHelper.SignIn(binding.edEmail.getText().toString(), binding.edPassword.getText().toString());

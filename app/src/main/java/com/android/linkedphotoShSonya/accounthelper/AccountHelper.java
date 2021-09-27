@@ -70,7 +70,7 @@ public class AccountHelper {
                                     sendEmailVerifocation(user);
                                     Log.d("MyLog ", "Create user " + name);
                                 }
-                                activity.updateUI();
+                                activity.updateUI(name);
 
                             } else {
                                 // If sign in fails, display a message to the user.
@@ -99,7 +99,7 @@ public class AccountHelper {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
-                                activity.updateUI();
+                                activity.updateUI("lll");
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w("MyLogMain", "signInWithEmail:failure", task.getException());
@@ -123,7 +123,7 @@ public class AccountHelper {
         }
         mAuth.signOut();
         signInClient.signOut();
-        activity.updateUI();
+        activity.updateUI("");
     }
 
     private void sendEmailVerifocation(FirebaseUser user) {
@@ -158,7 +158,7 @@ public class AccountHelper {
                     if (index == 1) linkEmailAndPassword(temp_email, temp_password);
                     Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
 
-                    activity.updateUI();
+                    activity.updateUI("");
                 } else {
 
                 }
@@ -230,7 +230,7 @@ public class AccountHelper {
                                 if (task.getResult() == null) {
                                     return;
                                 }
-                                activity.updateUI();
+                                activity.updateUI("");
                             } else {
                                 Toast.makeText(activity, "Authentication failed.",
                                         Toast.LENGTH_SHORT).show();
@@ -251,7 +251,7 @@ public class AccountHelper {
             @Override
             public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    activity.updateUI();
+                    activity.updateUI("");
                 } else {
                     //сюда написать что ошибка
                 }
@@ -272,7 +272,7 @@ public class AccountHelper {
         user.setId(FirebaseAuth.getInstance().getUid());
         user.setName(name);
         if (key != null) {
-            myRef.push().setValue(user);
+            myRef.child(user.getId()).setValue(user);
 //            mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
             //           mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
         }

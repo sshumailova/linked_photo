@@ -33,6 +33,7 @@ import com.android.linkedphotoShSonya.databinding.MainContentBinding;
 import com.android.linkedphotoShSonya.databinding.NavHeaderBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
+import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.dialog.SignDialog;
 import com.android.linkedphotoShSonya.filter.FilterActivity;
 import com.android.linkedphotoShSonya.filter.FilterManager;
@@ -50,7 +51,12 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +75,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private PostAdapter.OnItemClickCustom onItemClickCustom;
     private PostAdapter postAdapter;
     private DbManager dbManager;
+    private Query mQuery;
     public static String MAUTh = "";
     public String current_cat = MyConstants.ALL_PHOTOS;
     private AccountHelper accountHelper;
@@ -160,7 +167,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     public void onStart() {
         super.onStart();
-        updateUI();
+        updateUI("");
     }
 
     private void init() {
@@ -244,7 +251,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //        });
 //    }
 
-    public void updateUI() {
+    public void updateUI(String name) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+       DatabaseReference myRef = database.getReference();
+       mQuery=myRef.child(dbManager.USERS);
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             if (currentUser.isAnonymous()) {
@@ -253,11 +263,30 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 myAdsItem.setVisible(false);
                 navHeader.tvEmail.setText(R.string.host);
             } else {
+mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+    @Override
+    public void onDataChange(@NonNull DataSnapshot snapshot) {
+        for (DataSnapshot ds : snapshot.getChildren()) {
+            User user= null;
+            user = ds.getValue(User.class);
+            if(user.getId().equals(currentUser.getUid())){
+                navHeader.tvEmail.setText(user.getName());
+                return;
+            }
+        }
+    }
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+
+    }
+});
                 newAdItem.setVisibility(View.VISIBLE);
                 myFavsItem.setVisible(true);
                 myAdsItem.setVisible(true);
-                navHeader.tvEmail.setText(currentUser.getEmail());
+//                if(currentUser.getUid().equals(myRef)){
+                //navHeader.tvEmail.setText(currentUser.getEmail());
             }
+//        }
             MAUTh = mAuth.getUid();
             onResume();
         } else {
