@@ -6,6 +6,16 @@ public class User  implements Serializable {
     private String name;
     private String id;
     private String key;
+    private String email;
+    private String imageId;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     //private String imageId;
     public String getKey() {
@@ -31,11 +41,22 @@ public class User  implements Serializable {
         this.id = id;
     }
 
-//    public String getImageId() {
-//        return imageId;
-//    }
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", id='" + id + '\'' +
+                ", key='" + key + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 
-//    public void setImageId(String imageId) {
-//        this.imageId = imageId;
-//    }
+
+        public String getImageId() {
+        return imageId;
+   }
+
+   public void setImageId(String imageId) {
+        this.imageId = imageId;
+    }
 }

@@ -3,19 +3,20 @@ package com.android.linkedphotoShSonya.accounthelper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import com.android.linkedphotoShSonya.MainActivity;
+import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
-import com.android.linkedphotoShSonya.Status.StatusManager;
-import com.android.linkedphotoShSonya.act.MainAppClass;
+import com.android.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.User;
-import com.android.linkedphotoShSonya.dialog.SignDialog;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -28,33 +29,50 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthCredential;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 //import static com.android.linkedphotoShSonya.MainActivity.GOOGLE_SIGN_IN_CODE;
 
-public class AccountHelper {
+public class AccountHelper implements Observer {
+    String name;
     private FirebaseAuth mAuth;
     private MainActivity activity;
-
+    private AlertDialog dialog;
     private GoogleSignInClient signInClient;
     public static final int GOOGLE_SIGN_IN_CODE = 10;
     public static final int GOOGLE_SIGN_IN_LINK_CODE = 15;
     private String temp_email;
     private String temp_password;
+    private SignAppLayoutBinding binding;
+    //  private Query mQuery;
+    boolean createNewUser;
+    DbManager dbManager;
+    private String currentEmail;
 
 
-    public AccountHelper(FirebaseAuth mAuth, MainActivity activity) {
+    public AccountHelper(String name) {
+        this.name = name;
+    }
+
+    public AccountHelper(FirebaseAuth mAuth, MainActivity activity, DbManager dbManager) {
         this.mAuth = mAuth;
         this.activity = activity;
         googleAccountManager();
+        this.dbManager = dbManager;
     }
 
-
     //Sign Up by email
-    public void signUp(String email, String password, String name) {
+    public boolean signUp(String email, String password, String name) {
         if (!email.equals("") && !password.equals("")) {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
@@ -63,14 +81,14 @@ public class AccountHelper {
                             if (task.isSuccessful()) {
                                 if (mAuth.getCurrentUser() != null) {
                                     FirebaseUser user = mAuth.getCurrentUser();
-                                   // FirebaseDatabase database = FirebaseDatabase.getInstance();
+                                    // FirebaseDatabase database = FirebaseDatabase.getInstance();
                                     //DatabaseReference myRef = database.getReference(DbManager.USERS);
-                                  //  myRef.push().child("hhh").setValue("pl");
-                                    creatUser(user, name);
+                                    //  myRef.push().child("hhh").setValue("pl");
+                                    createUser(name, email);
                                     sendEmailVerifocation(user);
                                     Log.d("MyLog ", "Create user " + name);
                                 }
-                                activity.updateUI(name);
+                                activity.updateUI();
 
                             } else {
                                 // If sign in fails, display a message to the user.
@@ -85,10 +103,9 @@ public class AccountHelper {
                             }
                         }
                     });
-
-        } else {
-            Toast.makeText(activity, "Email или Password пустой!", Toast.LENGTH_SHORT).show();
+            return true;
         }
+        return false;
     }
 
     public void SignIn(String email, String password) {
@@ -99,7 +116,7 @@ public class AccountHelper {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
-                                activity.updateUI("lll");
+                                activity.updateUI();
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w("MyLogMain", "signInWithEmail:failure", task.getException());
@@ -123,7 +140,7 @@ public class AccountHelper {
         }
         mAuth.signOut();
         signInClient.signOut();
-        activity.updateUI("");
+        activity.updateUI();
     }
 
     private void sendEmailVerifocation(FirebaseUser user) {
@@ -142,25 +159,30 @@ public class AccountHelper {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).
                 requestIdToken(activity.getString(R.string.default_web_client_id)).requestEmail().build();
         signInClient = GoogleSignIn.getClient(activity, gso);
+
     }
 
     public void SignInGoogle(int code) {
         Intent signInIntent = signInClient.getSignInIntent();
         activity.startActivityForResult(signInIntent, code);
+
+
     }
 
-    public void SignInFireBaseGoogle(String idToken, int index) {
+    public void SignInFireBaseGoogle(String idToken, int index, GoogleSignInAccount account) {
         GoogleAuthCredential credential = (GoogleAuthCredential) GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     if (index == 1) linkEmailAndPassword(temp_email, temp_password);
+                    Log.d("MyLog", "SignInFireBaseG : " + index);
+                    currentEmail = account.getEmail();
+                    dbManager.loadAllUsers(AccountHelper.this);
                     Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
-
-                    activity.updateUI("");
+                    //activity.updateUI();
                 } else {
-
+                    Log.d("MyLog", "SignInFireBaseG 2: " + index);
                 }
             }
         });
@@ -230,7 +252,7 @@ public class AccountHelper {
                                 if (task.getResult() == null) {
                                     return;
                                 }
-                                activity.updateUI("");
+                                activity.updateUI();
                             } else {
                                 Toast.makeText(activity, "Authentication failed.",
                                         Toast.LENGTH_SHORT).show();
@@ -251,7 +273,7 @@ public class AccountHelper {
             @Override
             public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    activity.updateUI("");
+                    activity.updateUI();
                 } else {
                     //сюда написать что ошибка
                 }
@@ -259,22 +281,64 @@ public class AccountHelper {
         });
     }
 
-    private void creatUser(FirebaseUser firebaseUser, String name) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(DbManager.USERS);
-       // myRef.push().child("empty").setValue("llll");
+    private void createUser(String name, String email) {
         User user = new User();
-        //user.setId(firebaseUser.getUid());
-        //user.setId(firebaseUser.get);
-        //usersDatabaseReference.child(user.getId()).setValue(user);
         String key = FirebaseDatabase.getInstance().getReference().push().getKey();
         user.setKey(key);
         user.setId(FirebaseAuth.getInstance().getUid());
         user.setName(name);
+        user.setEmail(email);
         if (key != null) {
-            myRef.child(user.getId()).setValue(user);
-//            mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
-            //           mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
+            dbManager.addUser(user);
         }
+    }
+
+    public void createUserWithGoogle(String temp_email) {
+        dbManager.loadAllUsers(this);
+    }
+
+    @Override
+    public void handleEvent(List<User> users) {
+        boolean isUserExists = false;
+        for (User user : users) {
+            if (user.getEmail().equals(currentEmail)) {
+                isUserExists = true;
+                break;
+            }
+        }
+        Log.d("MyLog", users.toString());
+        if (!isUserExists) {
+            AlertDialog.Builder dialogBulder = new AlertDialog.Builder(activity);
+            binding = SignAppLayoutBinding.inflate(activity.getLayoutInflater());
+            dialogBulder.setView(binding.getRoot());
+            binding.tvAlerTitle.setText(R.string.choose_login);
+            binding.bForgetPassword.setVisibility(View.GONE);
+            binding.imageId.setVisibility(View.VISIBLE);
+            binding.edName.setVisibility(View.VISIBLE);
+            binding.edEmail.setText(mAuth.getCurrentUser().getEmail());
+            binding.edPassword.setVisibility(View.GONE);
+            binding.bSignGoogle.setVisibility(View.GONE);
+            binding.buttonSignUp.setVisibility(View.VISIBLE);
+            /// binding.edEmail.setText(temp_email);
+            binding.tvAlerTitle.setText(R.string.choose_login);
+            binding.buttonSignUp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    createUser(binding.edName.getText().toString(), binding.edEmail.getText().toString());
+                    activity.updateUI();
+                    dialog.dismiss();
+                }
+            });
+            dialog = dialogBulder.create();
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().
+                        setBackgroundDrawableResource(android.R.color.transparent);
+            }
+
+            dialog.show();
+        } else {
+            activity.updateUI();
+        }
+//        createUserWithGoogle();
     }
 }

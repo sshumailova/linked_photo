@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -142,7 +143,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                     GoogleSignInAccount account = task.getResult(ApiException.class);
                     if (account != null) {
                         Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
-                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 0);
+                        //String a=account.getEmail();
+                        //accountHelper.createUserWithGoogle(a);
+                        Log.d("MyLog", "onActivityResuly : " + requestCode);
+                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 0, account);
                     }
                 } catch (ApiException e) {
                     e.printStackTrace();
@@ -155,7 +159,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 try {
                     GoogleSignInAccount account = task2.getResult(ApiException.class);
                     if (account != null) {
-                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 1);
+                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 1,account );
                     }
                 } catch (ApiException e) {
                     e.printStackTrace();
@@ -167,7 +171,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     public void onStart() {
         super.onStart();
-        updateUI("");
+        updateUI();
     }
 
     private void init() {
@@ -176,10 +180,11 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         newAdItem = findViewById(R.id.fb);
 //        drawerLayout.openDrawer(GravityCompat.START);
         mAuth = FirebaseAuth.getInstance();
-        accountHelper = new AccountHelper(mAuth, this);
-        signDialog=new SignDialog(mAuth,this,accountHelper);
-        Menu menu = rootBinding.navView.getMenu();
         dbManager = new DbManager(this);
+        accountHelper = new AccountHelper(mAuth, this,dbManager);
+        dbManager.addObserver(accountHelper);
+        signDialog = new SignDialog(mAuth, this, accountHelper);
+        Menu menu = rootBinding.navView.getMenu();
         //dbManager.getDataFromDb("notes");
         initRcView();
         initNavView();
@@ -251,10 +256,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //        });
 //    }
 
-    public void updateUI(String name) {
+    public void updateUI() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-       DatabaseReference myRef = database.getReference();
-       mQuery=myRef.child(dbManager.USERS);
+        DatabaseReference myRef = database.getReference();
+        mQuery = myRef.child(dbManager.USERS);
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             if (currentUser.isAnonymous()) {
@@ -263,23 +268,25 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 myAdsItem.setVisible(false);
                 navHeader.tvEmail.setText(R.string.host);
             } else {
-mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-    @Override
-    public void onDataChange(@NonNull DataSnapshot snapshot) {
-        for (DataSnapshot ds : snapshot.getChildren()) {
-            User user= null;
-            user = ds.getValue(User.class);
-            if(user.getId().equals(currentUser.getUid())){
-                navHeader.tvEmail.setText(user.getName());
-                return;
-            }
-        }
-    }
-    @Override
-    public void onCancelled(@NonNull DatabaseError error) {
+                ValueEventListener listener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot ds : snapshot.getChildren()) {
+                            User user = null;
+                            user = ds.getValue(User.class);
+                            if (user.getId().equals(currentUser.getUid())) {
+                                navHeader.tvEmail.setText(user.getName());
+                                return;
+                            }
+                        }
+                    }
 
-    }
-});
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                };
+                mQuery.addListenerForSingleValueEvent(listener);
                 newAdItem.setVisibility(View.VISIBLE);
                 myFavsItem.setVisible(true);
                 myAdsItem.setVisible(true);
@@ -328,7 +335,7 @@ mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                 // Toast.makeText(this, "Pressed id sign up", Toast.LENGTH_SHORT).show();
                 break;
             case id_sing_in:
-                signDialog.showSignDialog(R.string.sign_in, R.string.signin_button,  1);
+                signDialog.showSignDialog(R.string.sign_in, R.string.signin_button, 1);
                 //Toast.makeText(this, "Pressed id sign in", Toast.LENGTH_SHORT).show();
                 break;
             case id_sing_out:

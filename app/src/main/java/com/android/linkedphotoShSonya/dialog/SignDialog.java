@@ -1,18 +1,23 @@
 package com.android.linkedphotoShSonya.dialog;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 
 import com.android.linkedphotoShSonya.db.User;
+import com.android.linkedphotoShSonya.utils.ImagePicker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,6 +27,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SignDialog {
     private FirebaseAuth auth;
@@ -38,28 +44,38 @@ public class SignDialog {
         this.activity = activity;
         this.accountHelper = accountHelper;
     }
+
     public void showSignDialog(int title, int buttonTitle, int index) {
         AlertDialog.Builder dialogBulder = new AlertDialog.Builder(activity);
         binding = SignAppLayoutBinding.inflate(activity.getLayoutInflater());
         dialogBulder.setView(binding.getRoot());
         binding.tvAlerTitle.setText(title);
-    showForgetButton(index);
-       binding.buttonSignUp.setText(buttonTitle);
+        showForgetButton(index);
+        binding.buttonSignUp.setText(buttonTitle);
+       binding.imageId.setOnClickListener(onClickOnImage());
         binding.buttonSignUp.setOnClickListener(onClickSignWithEmail(index));
-        binding.bSignGoogle.setOnClickListener(onClickSignWithGoogle());
+        binding.bSignGoogle.setOnClickListener(onClickSignWithGoogle(index));
         binding.bForgetPassword.setOnClickListener(onClickForgetButton());
-    dialog =dialogBulder.create();
-        if(dialog.getWindow()!=null){
-                dialog.getWindow().
-    setBackgroundDrawableResource(android.R.color.transparent);}
+        dialog = dialogBulder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().
+                    setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
         dialog.show();
-}
+    }
+
     private void showForgetButton(int index) {
         if (index == 0) {
             binding.bForgetPassword.setVisibility(View.GONE);
             binding.imageId.setVisibility(View.VISIBLE);
             binding.edName.setVisibility(View.VISIBLE);
+//        } else if(index == 2){
+//            binding.bForgetPassword.setVisibility(View.GONE);
+//            binding.imageId.setVisibility(View.VISIBLE);
+//            binding.edName.setVisibility(View.VISIBLE);
+//            binding.edEmail.setVisibility(View.GONE);
+//            binding.tvAlerTitle.setText(R.string.choose_login);
         } else {
             binding.bForgetPassword.setVisibility(View.VISIBLE);
             binding.imageId.setVisibility(View.GONE);
@@ -67,12 +83,16 @@ public class SignDialog {
 
         }
     }
-    private View.OnClickListener onClickSignWithEmail(final int index){
-        return new View.OnClickListener()
-
-        {
+    private View.OnClickListener onClickOnImage() {
+        return new View.OnClickListener() {
             @Override
-            public void onClick (View v){
+            public void onClick(View view) {
+
+    }
+    private View.OnClickListener onClickSignWithEmail(final int index) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 if (auth.getCurrentUser() != null) {
                     if (auth.getCurrentUser().isAnonymous()) {
                         auth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -80,8 +100,11 @@ public class SignDialog {
                             public void onComplete(@NonNull @NotNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     if (index == 0) {
-                                        Log.d("MyLog","For Index "+ index);
-                                        accountHelper.signUp(binding.edEmail.getText().toString(),binding.edPassword.getText().toString(),binding.edName.getText().toString());
+                                        Log.d("MyLog", "For Index " + index);
+                                        boolean result = accountHelper.signUp(binding.edEmail.getText().toString(), binding.edPassword.getText().toString(), binding.edName.getText().toString());
+                                        if (!result) {
+                                            Toast.makeText(activity, "Email или Password пустой!", Toast.LENGTH_SHORT).show();
+                                        }
                                     } else {
                                         accountHelper.SignIn(binding.edEmail.getText().toString(), binding.edPassword.getText().toString());
                                     }
@@ -95,11 +118,11 @@ public class SignDialog {
             }
         };
     }
-    private View.OnClickListener onClickSignWithGoogle(){
-        return new View.OnClickListener()
-        {
+
+    private View.OnClickListener onClickSignWithGoogle(final int index) {
+        return new View.OnClickListener() {
             @Override
-            public void onClick (View v){
+            public void onClick(View v) {
                 if (auth.getCurrentUser() != null) {
                     if (auth.getCurrentUser().isAnonymous()) {
                         auth.getCurrentUser().delete().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -117,11 +140,10 @@ public class SignDialog {
         };
     }
 
-    private View.OnClickListener onClickForgetButton(){
-        return new View.OnClickListener()
-        {
+    private View.OnClickListener onClickForgetButton() {
+        return new View.OnClickListener() {
             @Override
-            public void onClick (View v){
+            public void onClick(View v) {
                 if (binding.edPassword.isShown()) {
                     binding.edPassword.setVisibility(View.GONE);
                     binding.buttonSignUp.setVisibility(View.GONE);

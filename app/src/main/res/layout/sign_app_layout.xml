@@ -32,13 +32,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvAlerTitle"
-        tools:srcCompat="@tools:sample/avatars" />
+        tools:srcCompat="@drawable/four" />
 
     <EditText
         android:id="@+id/edName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="8dp"
         android:background="@android:drawable/editbox_background_normal"
@@ -47,9 +46,9 @@
         android:inputType="textPersonName"
         android:padding="10dp"
         android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/edEmail"
         app:layout_constraintHorizontal_bias="0.421"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/edEmail"
         app:layout_constraintTop_toBottomOf="@+id/imageId" />
 
     <EditText

@@ -60,4 +60,5 @@
     <string name="select_country_f_title">Select country</string>
     <string name="select_city_f_title">Select city</string>
     <string name="login">Login</string>
+    <string name="choose_login">Choose login and image</string>
 </resources>

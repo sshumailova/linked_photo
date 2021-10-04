@@ -123,8 +123,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         } else {
             listData.remove(0);
         }
-
-
         if (listData.size() == MyConstants.ADS_LIMIT) {
             NewPost tempPost = new NewPost();
             tempPost.setUid(NEXT_PAGE);

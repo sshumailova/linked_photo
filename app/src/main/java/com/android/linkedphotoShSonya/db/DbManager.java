@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.Observed;
+import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.act.MainAppClass;
@@ -44,9 +46,11 @@ public class DbManager {
     public static final String TOTAL_VIEWS = "/status/totalViews";
     private Context context;
     private Query mQuery;
+    private Query mQueryUser ;
     private List<NewPost> newPostList;
     private DataSender dataSender;
-   private MainAppClass mainAppClass;
+    private Observer observer;
+    private MainAppClass mainAppClass;
     private long cat_ads_counter = 0;
     String text;
     private DatabaseReference mainNode;
@@ -55,17 +59,24 @@ public class DbManager {
     private String orderByFilter;
     private int deleteImageCounter = 0;
     private String searchText = "";
+    public List<User> usersList;// список юзеров которые есть в бд
+    public List<Observer> subscribes;// список подписчиков
 
 
     public DbManager(Context context) {
         if (context instanceof DataSender) {
             this.dataSender = (DataSender) context;
         }
+        if(context instanceof Observer){
+            this.observer=(Observer) context;
+        }
         this.context = context;
         newPostList = new ArrayList<>();
-        mainAppClass=((MainAppClass)context.getApplicationContext());
+        mainAppClass = ((MainAppClass) context.getApplicationContext());
         mainNode = mainAppClass.getMainDbRef();
-        users=mainAppClass.getUserDbRef();
+        users = mainAppClass.getUserDbRef();
+        usersList = new ArrayList<>();
+        subscribes = new ArrayList<>();
 
     }
 
@@ -116,7 +127,7 @@ public class DbManager {
 //
 //    }
 
-//    public void creatUser(FirebaseUser firebaseUser, String name) {
+    //    public void creatUser(FirebaseUser firebaseUser, String name) {
 //        User user = new User();
 //        String key = FirebaseDatabase.getInstance().getReference().push().getKey();
 //        user.setKey(key);
@@ -182,9 +193,11 @@ public class DbManager {
     }
 
     private void deleteDBItem(NewPost newPost) {
-        DatabaseReference dbRef =  mainAppClass.getDb().getReference(DbManager.MAIN_ADS_PATH);
+        DatabaseReference dbRef = mainAppClass.getDb().getReference(DbManager.MAIN_ADS_PATH);
         dbRef.child(newPost.getKey()).child("status").removeValue();
-        if(mainAppClass.getAuth().getUid()==null){return;}
+        if (mainAppClass.getAuth().getUid() == null) {
+            return;
+        }
         dbRef.child(newPost.getKey()).child(mainAppClass.getAuth().getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
@@ -241,7 +254,7 @@ public class DbManager {
                     }
 
                     StatusItem statusItem = ds.child("status").getValue(StatusItem.class);
-                    String uid =mainAppClass.getAuth().getUid();
+                    String uid = mainAppClass.getAuth().getUid();
                     if (uid != null) {
                         String favUid = (String) ds.child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).child(USER_FAV_ID).getValue();
                         if (newPost != null) {
@@ -355,4 +368,79 @@ public class DbManager {
     public void setSearchText(String searchText) {
         this.searchText = searchText;
     }
+
+    //    public void addUser(FirebaseUser currentUser) {
+//      //  FirebaseUser currentUser = mainAppClass.getAuth().getCurrentUser();
+//        mainAppClass.getUserDbRef().addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for (DataSnapshot ds : snapshot.getChildren()) {
+//                    User user = null;
+//                    user = ds.getValue(User.class);
+//                    if (user.getId().equals(currentUser.getUid())) {
+//                        break;
+//                    }
+//                }
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+    public List<User> ListOfUsers(){
+        mQueryUser = users;
+//        fillingUserList();
+        return usersList;
+    }
+    public void loadAllUsers(Observer observer){
+        users.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<User> users = new ArrayList<>();
+//                if (usersList.size() > 0) {
+//                    usersList.clear();
+//                }
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    User user = ds.getValue(User.class);
+                    users.add(user);
+                }
+
+                observer.handleEvent(users);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+//
+        });
+    }
+    public boolean IsUserInDb(String email){
+        usersList=ListOfUsers();
+        for(int i=0;i<usersList.size();i++){
+            if(usersList.get(i).getEmail().equals(email)){
+                return true;// если в списке юзеров есть емайл с которым заожу сейчас - то возвращаю true
+            }
+        }
+        return false;
+    }
+    public void addUser(User user) {
+        this.usersList.add(user);
+        mainAppClass.getUserDbRef().child(user.getId()).setValue(user);
+
+    }
+
+    public void removeUser(User user) {
+        this.usersList.remove(user);
+        //тут так же надо сдлеать удаление из базы данных
+    }
+
+    public void addObserver(Observer observer) {
+        this.subscribes.add(observer);
+    }
+
+//    public void notifyObservers() {
+//for(Observer observer:subscribes){
+//    observer.handleEvent(this.usersList);//передает список юзеров которые есть на данный момент
+//}
+
 }
