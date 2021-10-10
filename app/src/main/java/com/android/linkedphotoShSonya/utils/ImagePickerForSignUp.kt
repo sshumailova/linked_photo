@@ -1,8 +1,6 @@
 package com.android.linkedphotoShSonya.utils
 
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.android.linkedphotoShSonya.R
 import io.ak1.pix.helpers.PixEventCallback
@@ -12,9 +10,9 @@ import io.ak1.pix.models.Mode
 import io.ak1.pix.models.Options
 import io.ak1.pix.models.Ratio
 
-object ImagePicker {
-    fun getImage(listener:Listener ,act:AppCompatActivity){
-        act.addPixToActivity(R.id.placeHolder, getOptions()){
+object ImagePickerForSignUp {
+    fun getImage(listener:Listener ,act: AppCompatActivity){
+        act.addPixToActivity(R.id.placeHolderForSign, getOptions()){
             when (it.status) {
                 PixEventCallback.Status.SUCCESS ->{
                     listener.onImageSelected(it.data[0])
@@ -25,7 +23,7 @@ object ImagePicker {
         }
 
     }
-    private fun getOptions(): Options{
+    private fun getOptions(): Options {
         return Options().apply{
             ratio = Ratio.RATIO_AUTO                                    //Image/video capture ratio
             count = 1                                                   //Number of images to restrict selection count
@@ -39,6 +37,10 @@ object ImagePicker {
         }
 
     }
+
+
+
+
     interface  Listener{
         fun onImageSelected(uri: Uri)// если я хочу что бы была возможность вбрыть несколько картинок сразу- нужно передавать list
     }

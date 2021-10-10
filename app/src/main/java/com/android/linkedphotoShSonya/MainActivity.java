@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.content.Intent;
@@ -38,7 +39,9 @@ import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.dialog.SignDialog;
 import com.android.linkedphotoShSonya.filter.FilterActivity;
 import com.android.linkedphotoShSonya.filter.FilterManager;
+import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
+import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -84,6 +87,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private MenuItem myAdsItem, myFavsItem;
     private SharedPreferences preferences;
     private SignDialog signDialog;
+    private ImagesManager imagesManager;
+    private OnBitMapLoaded onBitMapLoaded;
+    private String UserName;
+    private String UserPhoto;
 
 
     @Override
@@ -103,7 +110,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         dbManager.onResume(preferences);
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
-            Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
+           // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
         }
         showFilterDialog();
         resumeCat();
@@ -142,7 +149,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 try {
                     GoogleSignInAccount account = task.getResult(ApiException.class);
                     if (account != null) {
-                        Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
+                       // Picasso.get().load(user.getImageId()).into(navHeader.imPhoto);
+                       // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
                         //String a=account.getEmail();
                         //accountHelper.createUserWithGoogle(a);
                         Log.d("MyLog", "onActivityResuly : " + requestCode);
@@ -159,7 +167,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 try {
                     GoogleSignInAccount account = task2.getResult(ApiException.class);
                     if (account != null) {
-                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 1,account );
+                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 1, account);
                     }
                 } catch (ApiException e) {
                     e.printStackTrace();
@@ -181,9 +189,11 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //        drawerLayout.openDrawer(GravityCompat.START);
         mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
-        accountHelper = new AccountHelper(mAuth, this,dbManager);
+        accountHelper = new AccountHelper(mAuth, this, dbManager);
         dbManager.addObserver(accountHelper);
-        signDialog = new SignDialog(mAuth, this, accountHelper);
+        //imagesManager = new ImagesManager(this, onBitMapLoaded);
+        signDialog = new SignDialog(mAuth, this, accountHelper); //imagesManager создала что бы преедать его в sign in
+
         Menu menu = rootBinding.navView.getMenu();
         //dbManager.getDataFromDb("notes");
         initRcView();
@@ -201,11 +211,19 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         });
     }
 
+    public void closeFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+            if (f.isVisible()) getSupportFragmentManager().beginTransaction().remove(f).commit();
+        }
+    }
+
     private void initRcView() {
         mainContent.rcView.setLayoutManager(new GridLayoutManager(this, 1));//тут можно указать как будут выглядеть элементы в recyclerView обычно делают LinearLayoutManager
         List<NewPost> arrayPost = new ArrayList<>();
         postAdapter = new PostAdapter(arrayPost, this, onItemClickCustom);
         mainContent.rcView.setAdapter(postAdapter);
+
     }
 
     private void initNavView() {
@@ -240,7 +258,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         }
 
     }
-//    private void setOnScrollListener() {
+
+    //    private void setOnScrollListener() {
 //        rcView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 //            @Override
 //            public void onScrollStateChanged(@NonNull @NotNull RecyclerView recyclerView, int newState) {
@@ -255,6 +274,14 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //            }
 //        });
 //    }
+    public void closePixFragment() {
+        // if (isImagesLoaded) {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+            if (f.isVisible())
+                getSupportFragmentManager().beginTransaction().remove(f).commit();
+        }
+    }
 
     public void updateUI() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -275,7 +302,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                             User user = null;
                             user = ds.getValue(User.class);
                             if (user.getId().equals(currentUser.getUid())) {
+                                UserName=user.getName();
+                                UserPhoto=user.getImageId();
                                 navHeader.tvEmail.setText(user.getName());
+                                Picasso.get().load(user.getImageId()).into(navHeader.UserPhoto);
                                 return;
                             }
                         }
@@ -339,7 +369,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 //Toast.makeText(this, "Pressed id sign in", Toast.LENGTH_SHORT).show();
                 break;
             case id_sing_out:
-                navHeader.imPhoto.setImageResource(android.R.color.transparent);
+                navHeader.UserPhoto.setImageResource(android.R.color.transparent);
                 accountHelper.SignOut();
                 //Toast.makeText(this, "Pressed id sign out", Toast.LENGTH_SHORT).show();
                 break;
@@ -357,6 +387,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         if (mAuth.getCurrentUser() != null) {
             if (mAuth.getCurrentUser().isEmailVerified()) {
                 Intent i = new Intent(MainActivity.this, EditActivity.class);
+                i.putExtra("userName", UserName);
+                i.putExtra("userPhoto",UserPhoto);
                 startActivity(i);
             } else {
                 accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);

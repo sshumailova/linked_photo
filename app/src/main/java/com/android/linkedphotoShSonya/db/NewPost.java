@@ -10,13 +10,14 @@ public class NewPost implements Serializable {
     private String city;
     private String disc;
     private String key;
-private String uid;
-private String time;
-private String cat;
-private String name;
-private String total_views;
-private long favCounter=0;
-private boolean isFav=false;
+    private String uid;
+    private String time;
+    private String cat;
+    private String name;
+    private String logoUser;
+    private String total_views;
+    private long favCounter = 0;
+    private boolean isFav = false;
 
     public String getImageId3() {
         return imageId3;
@@ -99,8 +100,7 @@ private boolean isFav=false;
     }
 
 
-    public long getFavCounter()
-    {
+    public long getFavCounter() {
         return favCounter;
     }
 
@@ -130,5 +130,13 @@ private boolean isFav=false;
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getLogoUser() {
+        return logoUser;
+    }
+
+    public void setLogoUser(String logoUser) {
+        this.logoUser = logoUser;
     }
 }

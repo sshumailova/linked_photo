@@ -2,6 +2,9 @@ package com.android.linkedphotoShSonya.accounthelper;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -15,10 +18,13 @@ import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.User;
+import com.android.linkedphotoShSonya.dialog.SignDialog;
+import com.android.linkedphotoShSonya.utils.ImagePickerForSignUp;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -34,9 +40,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,10 +66,11 @@ public class AccountHelper implements Observer {
     private String temp_email;
     private String temp_password;
     private SignAppLayoutBinding binding;
-    //  private Query mQuery;
     boolean createNewUser;
     DbManager dbManager;
     private String currentEmail;
+    private StorageReference mStorageRef;
+    private Uri uploadUri;
 
 
     public AccountHelper(String name) {
@@ -72,7 +85,7 @@ public class AccountHelper implements Observer {
     }
 
     //Sign Up by email
-    public boolean signUp(String email, String password, String name) {
+    public boolean signUp(String email, String password, String name, Bitmap bitmap) {
         if (!email.equals("") && !password.equals("")) {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
@@ -81,10 +94,13 @@ public class AccountHelper implements Observer {
                             if (task.isSuccessful()) {
                                 if (mAuth.getCurrentUser() != null) {
                                     FirebaseUser user = mAuth.getCurrentUser();
+
                                     // FirebaseDatabase database = FirebaseDatabase.getInstance();
                                     //DatabaseReference myRef = database.getReference(DbManager.USERS);
                                     //  myRef.push().child("hhh").setValue("pl");
-                                    createUser(name, email);
+                                    //UploadImage();
+                                    //createUser(name, email, bitmap);
+                                    UploadImage(name,email,bitmap);
                                     sendEmailVerifocation(user);
                                     Log.d("MyLog ", "Create user " + name);
                                 }
@@ -288,9 +304,32 @@ public class AccountHelper implements Observer {
         user.setId(FirebaseAuth.getInstance().getUid());
         user.setName(name);
         user.setEmail(email);
+        user.setImageId(uploadUri.toString());
         if (key != null) {
             dbManager.addUser(user);
         }
+    }
+
+    private void UploadImage(String name, String email, Bitmap bitmap) {
+        mStorageRef = FirebaseStorage.getInstance().getReference("ImagesUserLogo");
+        //bitmap = ((BitmapDrawable) binding.imageId.getDrawable()).getBitmap();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+        byte[] byteArray = baos.toByteArray();
+        StorageReference mRef = mStorageRef.child(System.currentTimeMillis() + "my_Image");
+        UploadTask up = mRef.putBytes(byteArray);
+        Task<Uri> task = up.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+            @Override
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                return mRef.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                uploadUri = task.getResult();
+                createUser(name,email);
+            }
+        });
     }
 
     public void createUserWithGoogle(String temp_email) {
@@ -324,9 +363,17 @@ public class AccountHelper implements Observer {
             binding.buttonSignUp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    createUser(binding.edName.getText().toString(), binding.edEmail.getText().toString());
+                    Bitmap bitmap = ((BitmapDrawable) binding.imageId.getDrawable()).getBitmap();
+                    UploadImage(binding.edName.getText().toString(), binding.edEmail.getText().toString(), bitmap);
+                    ///createUser(binding.edName.getText().toString(), binding.edEmail.getText().toString(), bitmap);
                     activity.updateUI();
                     dialog.dismiss();
+                }
+            });
+            binding.imageId.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    getImage();
                 }
             });
             dialog = dialogBulder.create();
@@ -341,4 +388,34 @@ public class AccountHelper implements Observer {
         }
 //        createUserWithGoogle();
     }
+
+    private void getImage() {
+        dialog.dismiss();
+        ImagePickerForSignUp.INSTANCE.getImage((ImagePickerForSignUp.Listener) uri -> {
+            Log.d("MyLog", "ChooseFoeSign : " + uri);
+            try {
+                selectedimage(uri);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            closePixFragmentInSign();
+        }, (MainActivity) activity);
+        // activity.getFragmentManager().popBackStack();
+
+    }
+
+    private void selectedimage(Uri uri) throws IOException {
+        if (!uri.equals("empty")) {
+            Picasso.get().load(Uri.parse(uri.toString())).into(binding.imageId);
+            // Bitmap bm = Picasso.get().load(Uri.parse(String.valueOf(uri))).get();
+        }
+
+    }
+
+    private void closePixFragmentInSign() {
+        if (activity instanceof MainActivity) {
+            ((MainActivity) activity).closePixFragment();
+        }
+        dialog.show();
+    }//  DialogAfterChoosePhoto();
 }

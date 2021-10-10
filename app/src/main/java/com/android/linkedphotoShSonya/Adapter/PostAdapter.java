@@ -189,6 +189,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
         public void setData(NewPost newPost) {//тут показываю данные
             actionIfAnonymous(newPost);
+
             Picasso.get().load(newPost.getImageId()).into(binding.imAds);
             binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
             binding.tvName.setText(newPost.getName());
@@ -196,7 +197,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvTotalViews.setText(newPost.getTotal_views());
             //tvQuantityLike.setText((int) newPost.getFavCounter());
-
+            Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
             binding.deleteButton.setOnClickListener(onClickItem(newPost));
             binding.imEditItem.setOnClickListener(onClickItem(newPost));
             binding.imFav.setOnClickListener(onClickItem(newPost));

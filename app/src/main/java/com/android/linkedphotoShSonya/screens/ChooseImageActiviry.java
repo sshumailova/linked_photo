@@ -142,12 +142,6 @@ public class ChooseImageActiviry extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        Intent i=new Intent();
-//        i.putExtra("uriMain",uriMain);
-//        i.putExtra("uri2",uri2);
-//        i.putExtra("uri3",uri3);
-//
-//        setResult(RESULT_OK,i);
     }
 
     public void onClickDeleteMainImage(View view) {

@@ -18,11 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
+import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.Status.StatusManager;
 import com.android.linkedphotoShSonya.databinding.EditLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
+import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.CountryManager;
 import com.android.linkedphotoShSonya.utils.DialogHelper;
@@ -69,6 +71,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private boolean isImagesLoaded = false;
     private MainAppClass mainAppClass;
     private NewPost post;
+    private String UserName;
+   private String UserPhoto;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -115,6 +119,9 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private void getMyIntent() {
         if (getIntent() != null) {
             Intent i = getIntent();
+           UserName = i.getStringExtra("userName");
+           UserPhoto = i.getStringExtra("userPhoto");
+
             edit_state = i.getBooleanExtra(MyConstants.EDIT_STATE, false);
             if (edit_state) {
                 setDataAds(i);
@@ -123,7 +130,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void setDataAds(Intent i) {
-        // Picasso.get().load(i.getStringExtra(MyConstants.IMAGE_ID)).into(imItem);
+        // PicassoPicassoV.get().load(i.getStringExtra(MyConstants.IMAGE_ID)).into(imItem);
         NewPost newPost = (NewPost) i.getSerializableExtra(MyConstants.New_POST_INTENT);
         if (newPost == null) {
             return;
@@ -260,7 +267,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void savePost(NewPost post) {
-
         String key = mainAppClass.getMainDbRef().push().getKey();
         String key2 = mainAppClass.getUserDbRef().push().getKey();
         post.setKey(key);
@@ -268,11 +274,15 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(mainAppClass.getAuth().getUid());
         post.setCat("notes");
         post.setTotal_views("0");
+        post.setName(UserName);
+        post.setLogoUser(UserPhoto);
         if (key != null) {
             mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
             mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
         }
-      // mainAppClass.getUserDbRef().push().child("son").setValue("llll");
+
+
+        // mainAppClass.getUserDbRef().push().child("son").setValue("llll");
     }
 
     public void onClickSavePost(View view) {
@@ -306,7 +316,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             }
         }
     }
-
     private boolean isFieldEmpty() {//делаем что бы если пустое поле - то ошибка
 
         String country = rootElement.tvSelectCountry.getText().toString();
@@ -329,6 +338,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             } else {
                 savePost(post);
             }
+
         }
 
 

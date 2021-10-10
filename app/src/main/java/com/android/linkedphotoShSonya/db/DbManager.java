@@ -426,7 +426,7 @@ public class DbManager {
     public void addUser(User user) {
         this.usersList.add(user);
         mainAppClass.getUserDbRef().child(user.getId()).setValue(user);
-
+//mainAppClass.getFs().getReference("ImagesUserLogo")
     }
 
     public void removeUser(User user) {
@@ -438,9 +438,5 @@ public class DbManager {
         this.subscribes.add(observer);
     }
 
-//    public void notifyObservers() {
-//for(Observer observer:subscribes){
-//    observer.handleEvent(this.usersList);//передает список юзеров которые есть на данный момент
-//}
 
 }
