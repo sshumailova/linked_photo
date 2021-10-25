@@ -23,6 +23,7 @@ import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.act.ShowLayoutActivityActivity;
+import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
@@ -197,7 +198,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvTotalViews.setText(newPost.getTotal_views());
             //tvQuantityLike.setText((int) newPost.getFavCounter());
-            Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
+            //Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
+            Picasso.get().load(newPost.getLogoUser()).transform(new CircleTransform()).into(binding.UserPhoto);
             binding.deleteButton.setOnClickListener(onClickItem(newPost));
             binding.imEditItem.setOnClickListener(onClickItem(newPost));
             binding.imFav.setOnClickListener(onClickItem(newPost));

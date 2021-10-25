@@ -39,6 +39,7 @@ import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.dialog.SignDialog;
 import com.android.linkedphotoShSonya.filter.FilterActivity;
 import com.android.linkedphotoShSonya.filter.FilterManager;
+import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
@@ -305,7 +306,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                                 UserName=user.getName();
                                 UserPhoto=user.getImageId();
                                 navHeader.tvEmail.setText(user.getName());
-                                Picasso.get().load(user.getImageId()).into(navHeader.UserPhoto);
+                              //  Picasso.get().load(user.getImageId()).into(navHeader.UserPhoto);
+                                Picasso.get().load(user.getImageId()).transform(new CircleTransform()).into(navHeader.UserPhoto);
                                 return;
                             }
                         }
