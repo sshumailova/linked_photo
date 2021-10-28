@@ -18,13 +18,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
-import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.R;
-import com.android.linkedphotoShSonya.Status.StatusManager;
+import com.android.linkedphotoShSonya.Status.FilterManager;
+import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.databinding.EditLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
-import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.screens.ChooseImageActiviry;
 import com.android.linkedphotoShSonya.utils.CountryManager;
 import com.android.linkedphotoShSonya.utils.DialogHelper;
@@ -35,10 +34,6 @@ import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -72,7 +67,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private MainAppClass mainAppClass;
     private NewPost post;
     private String UserName;
-   private String UserPhoto;
+    private String UserPhoto;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,7 +79,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void init() {
-        mainAppClass=(MainAppClass)getApplicationContext();
+        mainAppClass = (MainAppClass) getApplicationContext();
         imagesManager = new ImagesManager(this, this);
         imagesUris = new ArrayList<>();
         bitMapArrayList = new ArrayList<>();
@@ -119,8 +114,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private void getMyIntent() {
         if (getIntent() != null) {
             Intent i = getIntent();
-           UserName = i.getStringExtra("userName");
-           UserPhoto = i.getStringExtra("userPhoto");
+            UserName = i.getStringExtra("userName");
+            UserPhoto = i.getStringExtra("userPhoto");
 
             edit_state = i.getBooleanExtra(MyConstants.EDIT_STATE, false);
             if (edit_state) {
@@ -218,7 +213,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
                 imagesUris.clear();
                 String[] tempUriArray = getUrisForChoose(data);
                 isImagesLoaded = false;
-                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray),this);
+                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray), this);
                 for (String s : tempUriArray) {
                     if (!s.equals("empty")) {
                         imagesUris.add(s);
@@ -278,7 +273,16 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setLogoUser(UserPhoto);
         if (key != null) {
             mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
-            mainAppClass.getMainDbRef().child(key).child("status").setValue(StatusManager.fillStatusItem(post));
+            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(new StatusItem());
+            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
+                    new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false));
+                        }
+                    }
+            );
+
         }
 
 
@@ -316,6 +320,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             }
         }
     }
+
     private boolean isFieldEmpty() {//делаем что бы если пустое поле - то ошибка
 
         String country = rootElement.tvSelectCountry.getText().toString();
@@ -325,21 +330,21 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void publishPost() {
-            NewPost post = new NewPost();
-            post.setImageId(uploadUri[0]);
-            post.setImageId2(uploadUri[1]);
-            post.setImageId3(uploadUri[2]);
+        NewPost post = new NewPost();
+        post.setImageId(uploadUri[0]);
+        post.setImageId2(uploadUri[1]);
+        post.setImageId3(uploadUri[2]);
 
-            post.setDisc(rootElement.editDesc.getText().toString());
-            post.setCountry(rootElement.tvSelectCountry.getText().toString());
-            post.setCity(rootElement.tvSelectCIty.getText().toString());
-            if (edit_state) {
-                updatePost(post);
-            } else {
-                savePost(post);
-            }
-
+        post.setDisc(rootElement.editDesc.getText().toString());
+        post.setCountry(rootElement.tvSelectCountry.getText().toString());
+        post.setCity(rootElement.tvSelectCIty.getText().toString());
+        if (edit_state) {
+            updatePost(post);
+        } else {
+            savePost(post);
         }
+
+    }
 
 
     private void updatePost(NewPost post) {
@@ -352,10 +357,20 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
-        mainAppClass.getMainDbRef().child(temp_key).child("status").setValue(StatusManager.fillStatusItem(post));
+        StatusItem statusItem=new StatusItem();
+        statusItem.totalViews=post.getTotal_views();
+        mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS+"/"+DbManager.STATUS).setValue(statusItem);
         mainAppClass.getMainDbRef().child(temp_key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
+                        new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false));
+                            }
+                        }
+                );
                 Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
                 finish();
             }

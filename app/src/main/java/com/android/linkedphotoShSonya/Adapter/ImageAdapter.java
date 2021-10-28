@@ -71,7 +71,7 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     public void updateImages(List<String> images) {
 
         imagesManager.resizeMultiLargeImages(images,context);
-        Log.d("MyLog", "Update" + images.get(0));
+       // Log.d("MyLog", "Update" + images.get(0));
     }
     @Override
     public void onBitmapLoadedd(final List<Bitmap> bitmap) {

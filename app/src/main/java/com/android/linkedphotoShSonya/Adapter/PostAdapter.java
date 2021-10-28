@@ -205,16 +205,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.imFav.setOnClickListener(onClickItem(newPost));
         }
         private View.OnClickListener onClickItem(NewPost newPost) {
-            return new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (view.getId() == R.id.deleteButton) {
-                        deleteDialog(newPost, getAdapterPosition());
-                    } else if (view.getId() == R.id.imEditItem) {
-                        onClickEdit(newPost);
-                    } else if (view.getId() == R.id.imFav) {
-                        onClickFav(newPost);
-                    }
+            return view -> {
+                if (view.getId() == R.id.deleteButton) {
+                    deleteDialog(newPost, getAdapterPosition());
+                } else if (view.getId() == R.id.imEditItem) {
+                    onClickEdit(newPost);
+                } else if (view.getId() == R.id.imFav) {
+                    onClickFav(newPost);
                 }
             };
         }

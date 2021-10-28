@@ -61,4 +61,10 @@
     <string name="select_city_f_title">Select city</string>
     <string name="login">Login</string>
     <string name="choose_login">Choose login and image</string>
+    <string name="admin">Admin</string>
+    <string name="moderation">Moderation</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="delete">Delete</string>
+    <string name="empty">Empty</string>
 </resources>

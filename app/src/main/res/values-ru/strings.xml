@@ -59,4 +59,10 @@
     <string name="select_city_f_title">Выберите город</string>
     <string name="login">Логин</string>
     <string name="choose_login">Придумайте логин и выберете фото</string>
+    <string name="admin">Администратор</string>
+    <string name="moderation">Модерация</string>
+    <string name="accept">Принять</string>
+    <string name="decline">Отклонить</string>
+    <string name="delete">Удалить</string>
+    <string name="empty">Пусто</string>
 </resources>

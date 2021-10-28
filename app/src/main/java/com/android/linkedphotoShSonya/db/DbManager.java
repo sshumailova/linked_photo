@@ -36,17 +36,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DbManager {
+    public static final String STATUS = "status";
+    public static final String FILTER1 = "filter1";
+    public static final String FILTER2 = "filter2";
     public static final String MAIN_ADS_PATH = "main_ads_path";
     public static final String USERS = "users";
     public static final String MY_FAv_PATh = "my_fav";
     public static final String FAv_ADS_PATh = "fav_path";
     public static final String USER_FAV_ID = "iser_fav_id";
-    public static final String ORDER_BY_CAT_DISC_TIME = "/status/cat_disc_time";
-    public static final String ORDER_BY_DISC_TIME = "/status/disc_time";
+    public static final String ORDER_BY_CAT_NAME_TIME = "/cat_name_time";
+    public static final String ORDER_BY_NAME_TIME = "/name_time";
     public static final String TOTAL_VIEWS = "/status/totalViews";
+    public static final String VISIBILITY = "visibility";
+    public static final String ACCEPTED = "accepted";
+    public static final String DECLINED = "declined";
     private Context context;
     private Query mQuery;
-    private Query mQueryUser ;
+    private Query mQueryUser;
     private List<NewPost> newPostList;
     private DataSender dataSender;
     private Observer observer;
@@ -67,8 +73,8 @@ public class DbManager {
         if (context instanceof DataSender) {
             this.dataSender = (DataSender) context;
         }
-        if(context instanceof Observer){
-            this.observer=(Observer) context;
+        if (context instanceof Observer) {
+            this.observer = (Observer) context;
         }
         this.context = context;
         newPostList = new ArrayList<>();
@@ -85,6 +91,25 @@ public class DbManager {
         orderByFilter = preferences.getString(MyConstants.ORDER_BY_FILTER, "");
     }
 
+    public void isAdmin(ResultListener listener) {
+        if (mainAppClass.getAuth().getUid() == null) {
+            return;
+        }
+        DatabaseReference adminRef = mainAppClass.getDb().getReference(mainAppClass.getAuth().getUid());
+        adminRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                listener.onResult(snapshot.hasChildren());
+                Log.d("MyLog", "Is Admin: " + snapshot.hasChildren());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                listener.onResult(false);
+            }
+        });
+    }
+
     public void clearFilter() {
         filter = "";
         orderByFilter = "";
@@ -92,30 +117,69 @@ public class DbManager {
 
     public void getMyAds(String orderBy) {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
-        readDataUpdate();
+        readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
+    }
+//    public void getAllOwnerAds(String uid) {
+//        mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
+//        readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
+//    }
+    public void getAdminAds() {
+        mQuery = mainNode.orderByChild("status/status/visibility").equalTo("waiting");
+        readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
+
     }
 
     public void getDataFromDb(String cat, String lastTitleTime) {
         if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
-        String orderBy = (cat.equals(MyConstants.ALL_PHOTOS)) ? ORDER_BY_DISC_TIME : ORDER_BY_CAT_DISC_TIME;
+        String filterToUse = getFilterToUse();
+        String orderBy = getOrderBy(cat, filterToUse);
         cat += "_";
-        if (orderBy.equals(ORDER_BY_DISC_TIME)) {
-            cat = "";
-        }
-        if (!orderByFilter.isEmpty()) {
-            orderBy = (cat.isEmpty()) ? "/status/" + orderByFilter : "/status/" + "cat_" + orderByFilter;
-
-        }
+        cat = useCategory(orderBy, filterToUse, cat);
+        orderBy= getOrderByFilter(orderBy,cat,filterToUse);
         Log.d("MyLog", "Filter by : " + cat + filter + lastTitleTime);
-        String disc = searchText;
+        String name = searchText;
         if (!lastTitleTime.isEmpty()) {
-            disc = "";
+            name = "";
+            lastTitleTime=searchText.isEmpty()? lastTitleTime.split("_")[1]: lastTitleTime;
         }
-        mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter + searchText).endAt(cat + filter + disc + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
+        mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter + searchText).endAt(cat + filter + name + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
 
         readDataUpdate();
+    }
+
+    private String getFilterToUse() {
+        return searchText.isEmpty() ? STATUS + "/" + FILTER2 : "/" + FILTER1;
+    }
+
+    private String getOrderBy(String cat, String filterToUse) {
+        return (cat.equals(MyConstants.ALL_PHOTOS)) ? filterToUse + ORDER_BY_NAME_TIME : filterToUse + ORDER_BY_CAT_NAME_TIME;
+    }
+
+    private String useCategory(String orderBy, String filterToUse, String cat) {
+        if (orderBy.equals(filterToUse + ORDER_BY_NAME_TIME)) {
+            return "";
+        } else {
+            return cat;
+        }
+    }
+    private String getOrderByFilter(String orderBy,String cat,String filterToUse){
+        if (!orderByFilter.isEmpty()) {
+            return  (cat.isEmpty()) ? filterToUse + "/" + orderByFilter : filterToUse + "/cat_" + orderByFilter;
+        }
+        else {
+            return orderBy;
+        }
+    }
+
+    public void setAdVisibility(String key, String visibility, ResultListener resultListener) {
+        DatabaseReference dRef = mainAppClass.getMainDbRef();
+        dRef.child(key).child(STATUS).child(STATUS).child(VISIBILITY).setValue(visibility).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) resultListener.onResult(true);
+
+        });
+
     }
 //    public void getSearchResult(String searchText) {
 //        if (mAuth.getUid() == null) {
@@ -194,7 +258,7 @@ public class DbManager {
 
     private void deleteDBItem(NewPost newPost) {
         DatabaseReference dbRef = mainAppClass.getDb().getReference(DbManager.MAIN_ADS_PATH);
-        dbRef.child(newPost.getKey()).child("status").removeValue();
+        dbRef.child(newPost.getKey()).child(STATUS).removeValue();
         if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
@@ -253,10 +317,10 @@ public class DbManager {
                         if (newPost == null) newPost = ds2.child("post").getValue(NewPost.class);
                     }
 
-                    StatusItem statusItem = ds.child("status").getValue(StatusItem.class);
+                    StatusItem statusItem = ds.child(STATUS).child(STATUS).getValue(StatusItem.class);
                     String uid = mainAppClass.getAuth().getUid();
                     if (uid != null) {
-                        String favUid = (String) ds.child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).child(USER_FAV_ID).getValue();
+                        String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
                         if (newPost != null) {
                             newPost.setFavCounter(ds.child(FAv_ADS_PATh).getChildrenCount());
 
@@ -269,11 +333,13 @@ public class DbManager {
                     }
                     if (newPost != null && statusItem != null) {
                         newPost.setTotal_views(statusItem.totalViews);
+                        if (statusItem.visibility.equals(ACCEPTED) || newPost.getUid().equals(mainAppClass.getAuth().getUid())) {
+                            newPostList.add(newPost);
+                        }
 
                     }
-                    newPostList.add(newPost);
                 }
-                dataSender.onDataRecived(newPostList);
+                dataSender.onDataRecived(newPostList); //у меня до 119 урока было это!
                 // newPostList.clear();
             }
 
@@ -322,12 +388,11 @@ public class DbManager {
         }
     }
 
-
     public void addFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
         if (mainAppClass.getAuth().getUid() == null) {
             return;
         }
-        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
+        DatabaseReference dRef = mainAppClass.getMainDbRef();
         dRef.child(newPost.getKey()).child(FAv_ADS_PATh).child(mainAppClass.getAuth().getUid()).child(USER_FAV_ID).
                 setValue(mainAppClass.getAuth().getUid()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -387,12 +452,13 @@ public class DbManager {
 //
 //            }
 //        });
-    public List<User> ListOfUsers(){
+    public List<User> ListOfUsers() {
         mQueryUser = users;
 //        fillingUserList();
         return usersList;
     }
-    public void loadAllUsers(Observer observer){
+
+    public void loadAllUsers(Observer observer) {
         users.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -407,6 +473,7 @@ public class DbManager {
 
                 observer.handleEvent(users);
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -414,15 +481,17 @@ public class DbManager {
 //
         });
     }
-    public boolean IsUserInDb(String email){
-        usersList=ListOfUsers();
-        for(int i=0;i<usersList.size();i++){
-            if(usersList.get(i).getEmail().equals(email)){
+
+    public boolean IsUserInDb(String email) {
+        usersList = ListOfUsers();
+        for (int i = 0; i < usersList.size(); i++) {
+            if (usersList.get(i).getEmail().equals(email)) {
                 return true;// если в списке юзеров есть емайл с которым заожу сейчас - то возвращаю true
             }
         }
         return false;
     }
+
     public void addUser(User user) {
         this.usersList.add(user);
         mainAppClass.getUserDbRef().child(user.getId()).setValue(user);
@@ -438,5 +507,7 @@ public class DbManager {
         this.subscribes.add(observer);
     }
 
-
+    public interface ResultListener {
+        void onResult(boolean result);
+    }
 }

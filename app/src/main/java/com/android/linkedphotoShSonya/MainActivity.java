@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +30,7 @@ import android.widget.Toast;
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
+import com.android.linkedphotoShSonya.act.AdminActivity;
 import com.android.linkedphotoShSonya.act.AdsViewActivity;
 import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
@@ -111,7 +114,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         dbManager.onResume(preferences);
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
-           // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
+            // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
         }
         showFilterDialog();
         resumeCat();
@@ -150,8 +153,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 try {
                     GoogleSignInAccount account = task.getResult(ApiException.class);
                     if (account != null) {
-                       // Picasso.get().load(user.getImageId()).into(navHeader.imPhoto);
-                       // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
+                        // Picasso.get().load(user.getImageId()).into(navHeader.imPhoto);
+                        // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
                         //String a=account.getEmail();
                         //accountHelper.createUserWithGoogle(a);
                         Log.d("MyLog", "onActivityResuly : " + requestCode);
@@ -202,6 +205,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         initToolBar();
         initDrawer();
         postAdapter.setDbManager(dbManager);
+        setNavViewStyle();
         mainContent.filterDialogLayout.imCloseFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -303,10 +307,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                             User user = null;
                             user = ds.getValue(User.class);
                             if (user.getId().equals(currentUser.getUid())) {
-                                UserName=user.getName();
-                                UserPhoto=user.getImageId();
+                                UserName = user.getName();
+                                UserPhoto = user.getImageId();
                                 navHeader.tvEmail.setText(user.getName());
-                              //  Picasso.get().load(user.getImageId()).into(navHeader.UserPhoto);
+                                //  Picasso.get().load(user.getImageId()).into(navHeader.UserPhoto);
                                 Picasso.get().load(user.getImageId()).transform(new CircleTransform()).into(navHeader.UserPhoto);
                                 return;
                             }
@@ -328,11 +332,19 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //        }
             MAUTh = mAuth.getUid();
             onResume();
+            dbManager.isAdmin(new DbManager.ResultListener() {
+                @Override
+                public void onResult(boolean result) {
+                    showAdminPanel(result);
+                }
+            });
         } else {
             accountHelper.signInAnonimous();
         }
     }
-
+private void showAdminPanel(boolean visible){
+        rootBinding.navView.getMenu().findItem(R.id.adminCatID).setVisible(visible);
+}
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -342,8 +354,12 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         final int id_sing_in = R.id.id_sing_in;
         final int id_sing_out = R.id.id_sing_out;
         final int id_my_fav = R.id.id_fav;
+        final int id_admin = R.id.id_admin;
         postAdapter.isStartPage = true;
         switch (id) {
+            case id_admin:
+                startActivity(new Intent(MainActivity.this, AdminActivity.class));
+                break;
             case id_my_files:
                 //current_cat = "Мои файлы";
                 current_cat = MyConstants.MY_ADS;
@@ -390,7 +406,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             if (mAuth.getCurrentUser().isEmailVerified()) {
                 Intent i = new Intent(MainActivity.this, EditActivity.class);
                 i.putExtra("userName", UserName);
-                i.putExtra("userPhoto",UserPhoto);
+                i.putExtra("userPhoto", UserPhoto);
                 startActivity(i);
             } else {
                 accountHelper.showDialogNotVarificate(R.string.alert, R.string.email_not_verified);
@@ -417,6 +433,18 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         });
     }
 
+    private void setNavViewStyle() {
+        Menu menu = rootBinding.navView.getMenu();
+        MenuItem categoryAccountItem = menu.findItem(R.id.accountCatId);
+        MenuItem categoryAdmin= menu.findItem(R.id.adminCatID);
+        SpannableString sp = new SpannableString(categoryAccountItem.getTitle());
+        SpannableString sp1 = new SpannableString(categoryAdmin.getTitle());
+    sp.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)),0,sp.length(),0);
+    sp1.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)),0,sp1.length(),0);
+    categoryAccountItem.setTitle(sp);
+    categoryAdmin.setTitle(sp1);
+    }
+
     @Override
     public boolean onQueryTextSubmit(String query) {
 
@@ -435,4 +463,5 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         Collections.reverse(listData);
         postAdapter.updateAdapter(listData);
     }
+
 }

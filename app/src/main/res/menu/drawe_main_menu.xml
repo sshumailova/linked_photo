@@ -2,6 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
+    <item android:title="@string/admin"
+        android:id="@+id/adminCatID">
+        <menu>
+            <item android:title="@string/moderation"
+                android:id="@+id/id_admin"
+                android:icon="@drawable/ic_sing_up"/>
+        </menu>
+    </item>
     <group android:checkableBehavior="single">
         <item android:title="@string/my_files"
             android:id="@+id/id_my_files"
@@ -15,7 +23,9 @@
             android:icon="@drawable/ic_my_files"
             android:title="@string/all" />
     </group>
-    <item android:title="@string/account">
+    <item android:title="@string/account"
+        android:id="@+id/accountCatId">
+
 <menu>
     <item android:title="@string/sing_up"
         android:id="@+id/id_sing_up"
