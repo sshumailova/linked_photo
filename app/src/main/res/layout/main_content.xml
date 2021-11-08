@@ -54,6 +54,7 @@
         android:scrollbarThumbHorizontal="@drawable/ic_launcher_background"
         android:scrollbarThumbVertical="@drawable/ic_launcher_foreground"
         android:theme="@style/MainToolBar"
+        app:backgroundTint="@color/green"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_menu_add" />

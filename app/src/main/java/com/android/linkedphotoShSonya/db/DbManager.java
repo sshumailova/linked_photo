@@ -46,7 +46,7 @@ public class DbManager {
     public static final String USER_FAV_ID = "iser_fav_id";
     public static final String ORDER_BY_CAT_NAME_TIME = "/cat_name_time";
     public static final String ORDER_BY_NAME_TIME = "/name_time";
-    public static final String TOTAL_VIEWS = "/status/totalViews";
+    public static final String TOTAL_VIEWS = "/status/status/totalViews";
     public static final String VISIBILITY = "visibility";
     public static final String ACCEPTED = "accepted";
     public static final String DECLINED = "declined";
@@ -99,13 +99,16 @@ public class DbManager {
         adminRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                mainAppClass.setAdmin(snapshot.hasChildren());
                 listener.onResult(snapshot.hasChildren());
                 Log.d("MyLog", "Is Admin: " + snapshot.hasChildren());
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                listener.onResult(false);
+
+                mainAppClass.setAdmin(false);
+            listener.onResult(false);
             }
         });
     }
@@ -119,10 +122,10 @@ public class DbManager {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
     }
-//    public void getAllOwnerAds(String uid) {
-//        mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
-//        readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
-//    }
+    public void getAllOwnerAds(String uid) {
+        mQuery = mainNode.orderByChild(uid+ "/post/uid").equalTo(uid);
+        readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
+    }
     public void getAdminAds() {
         mQuery = mainNode.orderByChild("status/status/visibility").equalTo("waiting");
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
@@ -333,7 +336,7 @@ public class DbManager {
                     }
                     if (newPost != null && statusItem != null) {
                         newPost.setTotal_views(statusItem.totalViews);
-                        if (statusItem.visibility.equals(ACCEPTED) || newPost.getUid().equals(mainAppClass.getAuth().getUid())) {
+                        if (statusItem.visibility.equals(ACCEPTED) || newPost.getUid().equals(mainAppClass.getAuth().getUid()) || mainAppClass.isAdmin()) {
                             newPostList.add(newPost);
                         }
 

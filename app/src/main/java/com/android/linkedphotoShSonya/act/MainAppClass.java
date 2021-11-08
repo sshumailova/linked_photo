@@ -12,6 +12,7 @@ public class MainAppClass extends Application {
     private FirebaseDatabase db;
     private FirebaseStorage fs;
     private FirebaseAuth auth;
+    private boolean isAdmin=false;
 
     @Override
     public void onCreate() {
@@ -39,5 +40,13 @@ public class MainAppClass extends Application {
 
     public FirebaseAuth getAuth() {
         return auth;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 }

@@ -33,30 +33,29 @@ public class ImagesManager {
 
     public int[] getImageSize(String uri, Activity act) {
         int[] size = new int[2];
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
         try {
-            InputStream is=act.getContentResolver().openInputStream(Uri.parse(uri));
-            BitmapFactory.decodeStream(is,null,options);
+            InputStream is = act.getContentResolver().openInputStream(Uri.parse(uri));
+            BitmapFactory.decodeStream(is, null, options);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         size[0] = options.outWidth;
-            size[1] = options.outHeight;
-
+        size[1] = options.outHeight;
         return size;
     }
 
-    public void resizeMultiLargeImages(final List<String> uries,Activity act) {
+    public void resizeMultiLargeImages(final List<String> uries, Activity act) {
         List<int[]> sizeList = new ArrayList<>();
         List<int[]> realSizeList = new ArrayList<>();
 
         for (int i = 0; i < uries.size(); i++) {
-            int[]sizes=getImageSize(uries.get(i),act);
+            int[] sizes = getImageSize(uries.get(i), act);
             width = sizes[0];
             height = sizes[1];
             realSizeList.add(new int[]{width, height});
-            Log.d("MyLog","Origin Image Size " + width);
+            Log.d("MyLog", "Origin Image Size " + width);
             float imageRatio = (float) width / (float) height;
             if (imageRatio > 1) {
                 if (width > MAX_SIZE) {
@@ -83,12 +82,11 @@ public class ImagesManager {
                     } else if (uries.get(i).startsWith("http")) {
                         Bitmap bm = Picasso.get().load(uries.get(i)).get();
                         bmList.add(bm);
-                    }
-                    else if ( !uries.get(i).equals("empty") &&
+                    } else if (!uries.get(i).equals("empty") &&
                             !uries.get(i).startsWith("http") && realSizeList.get(i)[0] < MAX_SIZE && realSizeList.get(i)[1] < MAX_SIZE) {
                         Bitmap bm = Picasso.get().load(Uri.parse(uries.get(i))).get();
                         bmList.add(bm);
-                    }else {
+                    } else {
                         bmList.add(null);
                     }
                 }

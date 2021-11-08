@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,10 +46,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
-    private ImageView imItem;
     private EditLayoutBinding rootElement; //через rootElement  есть доступ ко всем элементамэкрана
+    private ActivityResultLauncher<Intent> chooseImageLauncher;
     private StorageReference mstorageRef;
-    private String[] uploadUri = new String[3];
+    private String[] uploadUri = {"empty", "empty", "empty"};
     private String[] uploadNewUri = new String[3];
     private boolean edit_state = false;
     private String temp_cat = "";
@@ -57,11 +59,10 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private String temp_total_views = "";
     private boolean image_update = false;
     private ProgressDialog pd;
-    private int load_image_coat = 0;
+    private int load_image_counter = 0;
     private List<String> imagesUris;
     private ImageAdapter imageAdapter;
     private List<Bitmap> bitMapArrayList;
-    private final int MAX_UPOLOAD_IMAGE_SIZE = 1920;
     private ImagesManager imagesManager;
     private boolean isImagesLoaded = false;
     private MainAppClass mainAppClass;
@@ -75,7 +76,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         rootElement = EditLayoutBinding.inflate(getLayoutInflater());
         setContentView(rootElement.getRoot());
         init();
-        getMyIntent();
+        onResultLauncher();
+        //getMyIntent();
     }
 
     private void init() {
@@ -84,7 +86,41 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         imagesUris = new ArrayList<>();
         bitMapArrayList = new ArrayList<>();
         imageAdapter = new ImageAdapter(this);
+        pd = new ProgressDialog(this);
         rootElement.viewPager.setAdapter(imageAdapter);
+        pd.setMessage("Идет загрузка...");
+        mstorageRef = mainAppClass.getFs().getReference("Images");
+        onChangePageListener();
+        getMyIntent();// до 125 урока у меня этого не было увидела у него
+    }
+
+    private void onResultLauncher() {
+        chooseImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            onActivityResult(result.getData());
+        });
+
+    }
+
+    private void onActivityResult(Intent data) {//
+        image_update = true;
+        imagesUris.clear();
+        String[] tempUriArray = getUrisForChoose(data);
+        isImagesLoaded = false;
+        imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray), this);
+        for (String s : tempUriArray) {
+            if (!s.equals("empty")) {
+                imagesUris.add(s);
+            }
+        }
+        imageAdapter.updateImages(imagesUris);
+        viewPagerimageCounter();
+
+        //rootElement.tvImagedCounter.setVisibility(View.VISIBLE);// до 126 уркоа у меня была эта строка
+
+
+    }
+
+    private void onChangePageListener() {
         rootElement.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -102,13 +138,6 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
             }
         });
-        uploadUri[0] = "empty";
-        uploadUri[1] = "empty";
-        uploadUri[2] = "empty";
-        pd = new ProgressDialog(this);
-        pd.setMessage("Идет загрузка...");
-        mstorageRef = mainAppClass.getFs().getReference("Images");
-
     }
 
     private void getMyIntent() {
@@ -131,105 +160,71 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             return;
         }
         rootElement.editDesc.setText(newPost.getDisc());
+        rootElement.tvSelectCountry.setText(newPost.getCountry());
+        rootElement.tvSelectCIty.setText(newPost.getCity());
         temp_cat = newPost.getCat();
         temp_uid = newPost.getUid();
         temp_time = newPost.getTime();
         temp_key = newPost.getKey();
         temp_total_views = newPost.getTotal_views();
+
+        fillImageArray(newPost);
+
+        viewPagerimageCounter();
+        rootElement.tvImagedCounter.setVisibility(View.VISIBLE);
+
+    }
+
+    private void fillImageArray(NewPost newPost) {//заполняю массив фотографиями
+        isImagesLoaded = true;
         uploadUri[0] = newPost.getImageId();
         uploadUri[1] = newPost.getImageId2();
         uploadUri[2] = newPost.getImageId3();
-
         for (String s : uploadUri) {
             if (!s.equals("empty")) {
                 imagesUris.add(s);
             }
         }
-        isImagesLoaded = true;
         imageAdapter.updateImages(imagesUris);
-        String dataText;
-        if (imagesUris.size() > 0) {
-            dataText = 1 + "/" + imagesUris.size();
-        } else {
-            dataText = 0 + "/" + imagesUris.size();
-        }
-        rootElement.tvImagedCounter.setVisibility(View.VISIBLE);
-        rootElement.tvImagedCounter.setText(dataText);
-
     }
 
+    private void viewPagerimageCounter() {
+        String dataText = (imagesUris.size() > 0) ? 1 + "/" + imagesUris.size() : 0 + "/" + imagesUris.size();
+        rootElement.tvImagedCounter.setText(dataText);
+    }
 
     private void uploadImage() {
-        if (load_image_coat < uploadUri.length) {
-            if (!uploadUri[load_image_coat].equals("empty")) {
-                Bitmap bitmap = bitMapArrayList.get(load_image_coat);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                assert bitmap != null;
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, out);
-                byte[] byteArray = out.toByteArray();
-                final StorageReference mRef = mstorageRef.child(System.currentTimeMillis() + "_image");
-                UploadTask up = mRef.putBytes(byteArray);
-                Task<Uri> task = up.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                    @Override
-                    public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                        return mRef.getDownloadUrl();
-                    }
-                }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Uri> task) {
-                        if (task.getResult() == null) return;
-                        uploadUri[load_image_coat] = task.getResult().toString();
-                        load_image_coat++;
-                        if (load_image_coat < uploadUri.length) {
-                            uploadImage();
-                        } else {
-                            publishPost();
-                            Toast.makeText(EditActivity.this, "Upload  done: ", Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                    }
-                });
-            } else {
-                load_image_coat++;
-                uploadImage();
-            }
-        } else {
+        if (imagesUris.size() == load_image_counter) {
             publishPost();
             finish();
+            return;
         }
+        Bitmap bitmap = bitMapArrayList.get(load_image_counter);
+        sendImageToStorage(getBytesFromBitMap(bitmap));
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) { //отпраяляем наши ссылки
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d("MyLOg", "Uri 3 " + data);
-        if (requestCode == 15 && data != null && data != null) {
-            if (resultCode == RESULT_OK) {
-                image_update = true;
-                imagesUris.clear();
-                String[] tempUriArray = getUrisForChoose(data);
-                isImagesLoaded = false;
-                imagesManager.resizeMultiLargeImages(Arrays.asList(tempUriArray), this);
-                for (String s : tempUriArray) {
-                    if (!s.equals("empty")) {
-                        imagesUris.add(s);
-                    }
-                }
-                imageAdapter.updateImages(imagesUris);
-                String dataText;
-                if (imagesUris.size() > 0) {
-                    dataText = rootElement.viewPager.getCurrentItem() + 1 + "/" + imagesUris.size();
-                } else {
-                    dataText = 0 + "/" + imagesUris.size();
-                }
-                rootElement.tvImagedCounter.setVisibility(View.VISIBLE);
-                rootElement.tvImagedCounter.setText(dataText);
-            }
-        }
+    private void sendImageToStorage(byte[] byteArray) {// загрузка массива из байтов в firebase storage
+        final StorageReference mRef = mstorageRef.child(System.currentTimeMillis() + "_image");
+        UploadTask up = mRef.putBytes(byteArray); //загркжаем картинку на указанный путь(путь строкой выше)
+        up.continueWithTask(task1 -> mRef.getDownloadUrl()).addOnCompleteListener(task12 -> {
+            if (task12.getResult() == null) return;// когда ничего не пришло
+            uploadUri[load_image_counter] = task12.getResult().toString();
+            nexImageToSend();
+        }).addOnFailureListener(e -> {
+        });
+    }
+
+    private byte[] getBytesFromBitMap(Bitmap bitmap) { //берем битмап и  получаем массссив байтов
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        assert bitmap != null;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, out);
+        return out.toByteArray();
+    }
+
+    private void nexImageToSend() {
+        load_image_counter++;
+        uploadImage();
     }
 
     private String[] getUrisForChoose(Intent data) {
@@ -251,7 +246,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         intent.putExtra(MyConstants.New_POST_INTENT, uploadUri[0]);
         intent.putExtra(MyConstants.IMAGE_ID2, uploadUri[1]);
         intent.putExtra(MyConstants.IMAGE_ID3, uploadUri[2]);
-        startActivityForResult(intent, 15);
+        chooseImageLauncher.launch(intent);
+
     }
 
     private void getImage() {
@@ -357,9 +353,9 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
-        StatusItem statusItem=new StatusItem();
-        statusItem.totalViews=post.getTotal_views();
-        mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS+"/"+DbManager.STATUS).setValue(statusItem);
+        StatusItem statusItem = new StatusItem();
+        statusItem.totalViews = post.getTotal_views();
+        mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(statusItem);
         mainAppClass.getMainDbRef().child(temp_key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -378,80 +374,66 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void uploadUpdateImage() {
-        Bitmap bitmap = null;
-        if (load_image_coat < uploadUri.length) {
-            // первое условие :если ссылка на старой позиции равна ссылке на новой (ничего не изменилось)
-            if (uploadUri[load_image_coat].equals(uploadNewUri[load_image_coat])) {
-                load_image_coat++;
-                uploadUpdateImage();
-            }
-// второе условие :если ссылка на старой позиции НЕ равна ссылке на новой и  Не ПКСТОТА новая (изменилось)
-            else if (!uploadUri[load_image_coat].equals(uploadNewUri[load_image_coat]) && !uploadNewUri[load_image_coat].equals("empty")) {
-
-                bitmap = bitMapArrayList.get(load_image_coat);
-
-            }
-            // удалить старую ссылку и картинку
-            else if (!uploadUri[load_image_coat].equals("empty") && uploadNewUri[load_image_coat].equals("empty")) {
-                StorageReference mRef = FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_coat]);
-                mRef.delete();
-                mRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        uploadUri[load_image_coat] = "empty";
-                        load_image_coat++;
-                        if (load_image_coat < uploadUri.length) {
-                            uploadUpdateImage();
-                        } else {
-                            publishPost();
-                        }
-                    }
-                });
-            }
-            if (bitmap == null) {
-                return;
-            }
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            byte[] byteArray = out.toByteArray();
-            final StorageReference mRef;
-            if (!uploadUri[load_image_coat].equals("empty")) { // если старая не empty, то презаписывает в страрую ссылку в новую
-                mRef = FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_coat]);
-            } else {// тут наоброт если empty - созадаем новую картинку в storage
-                mRef = mstorageRef.child(System.currentTimeMillis() + "_image");
-            }
-
-            UploadTask up = mRef.putBytes(byteArray);
-            Task<Uri> task = up.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    return mRef.getDownloadUrl();
-                }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    uploadUri[load_image_coat] = task.getResult().toString();
-//                    assert uploadUri != null;
-//                    uploadUri[0] = uploadUri.toString();
-                    load_image_coat++;
-                    if (load_image_coat < uploadUri.length) {
-                        uploadUpdateImage();
-                    } else {
-                        publishPost();
-                    }
-
-
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-
-                }
-            });
+        if (load_image_counter < uploadUri.length) {
+            compareUpdateImageArrays();
         } else {
             publishPost();
 
         }
+    }
+
+    private void uploadNextUpdateImage() {
+        load_image_counter++;
+        uploadUpdateImage();
+    }
+
+    private void updateImageOnFireBase(byte[] byteArray) {//то как мы записываем bytearray на fireBase
+        StorageReference mRef = getUpdateRef();
+        UploadTask up = mRef.putBytes(byteArray);
+        up.continueWithTask(task1 -> mRef.getDownloadUrl()).addOnCompleteListener(task12 -> {
+            uploadUri[load_image_counter] = task12.getResult().toString();
+            uploadNextUpdateImage();
+
+        }).addOnFailureListener(e -> {
+        });
+    }
+
+    private StorageReference getUpdateRef() {// возвращает место куда записываем ИЛИ перезаписываем картинку
+
+        if (!uploadUri[load_image_counter].equals("empty")) { // если старая не empty, то презаписывает в страрую ссылку в новую
+            return FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_counter]);
+        } else {// тут наоброт если empty - созадаем новую картинку в storage
+            return mstorageRef.child(System.currentTimeMillis() + "_image");
+        }
+    }
+
+    private void deleteUpdateImage() {
+        StorageReference mRef = FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_counter]);
+        mRef.delete().addOnCompleteListener(task -> {
+            uploadUri[load_image_counter] = "empty";
+
+            uploadNextUpdateImage();
+        });
+    }
+    private void compareUpdateImageArrays(){
+        Bitmap bitmap = null;
+        // первое условие :если ссылка на старой позиции равна ссылке на новой (ничего не изменилось)
+        if (uploadUri[load_image_counter].equals(uploadNewUri[load_image_counter])) {
+            uploadNextUpdateImage();
+        }
+        // второе условие :если ссылка на старой позиции НЕ равна ссылке на новой и  Не ПКСТОТА новая (изменилось)
+        else if (!uploadUri[load_image_counter].equals(uploadNewUri[load_image_counter]) && !uploadNewUri[load_image_counter].equals("empty")) {
+            bitmap = bitMapArrayList.get(load_image_counter);
+
+        }
+        // удалить старую ссылку и картинку
+        else if (!uploadUri[load_image_counter].equals("empty") && uploadNewUri[load_image_counter].equals("empty")) {
+            deleteUpdateImage();
+        }
+        if (bitmap == null) {
+            return;
+        }
+        updateImageOnFireBase(getBytesFromBitMap(bitmap));
     }
 
     @Override

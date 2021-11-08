@@ -61,8 +61,6 @@ public class AccountHelper implements Observer {
     private MainActivity activity;
     private AlertDialog dialog;
     private GoogleSignInClient signInClient;
-    public static final int GOOGLE_SIGN_IN_CODE = 10;
-    public static final int GOOGLE_SIGN_IN_LINK_CODE = 15;
     private String temp_email;
     private String temp_password;
     private SignAppLayoutBinding binding;
@@ -71,6 +69,7 @@ public class AccountHelper implements Observer {
     private String currentEmail;
     private StorageReference mStorageRef;
     private Uri uploadUri;
+    private int index=0;
 
 
     public AccountHelper(String name) {
@@ -179,27 +178,25 @@ public class AccountHelper implements Observer {
     }
 
     public void SignInGoogle(int code) {
+        index=code;
         Intent signInIntent = signInClient.getSignInIntent();
-        activity.startActivityForResult(signInIntent, code);
+        activity.getSignInLauncher().launch(signInIntent);
 
 
     }
 
-    public void SignInFireBaseGoogle(String idToken, int index, GoogleSignInAccount account) {
+    public void SignInFireBaseGoogle(String idToken, GoogleSignInAccount account) {
         GoogleAuthCredential credential = (GoogleAuthCredential) GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    if (index == 1) linkEmailAndPassword(temp_email, temp_password);
-                    Log.d("MyLog", "SignInFireBaseG : " + index);
-                    currentEmail = account.getEmail();
-                    dbManager.loadAllUsers(AccountHelper.this);
-                    Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
-                    //activity.updateUI();
-                } else {
-                    Log.d("MyLog", "SignInFireBaseG 2: " + index);
-                }
+        mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (index == 1) linkEmailAndPassword(temp_email, temp_password);
+                Log.d("MyLog", "SignInFireBaseG : " + index);
+                currentEmail = account.getEmail();
+                dbManager.loadAllUsers(AccountHelper.this);
+                Toast.makeText(activity, "Log in Done", Toast.LENGTH_SHORT).show();
+                //activity.updateUI();
+            } else {
+                Log.d("MyLog", "SignInFireBaseG 2: " + index);
             }
         });
     }
@@ -226,7 +223,7 @@ public class AccountHelper implements Observer {
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                SignInGoogle(GOOGLE_SIGN_IN_LINK_CODE);
+                SignInGoogle(1);
             }
         });
         builder.create();

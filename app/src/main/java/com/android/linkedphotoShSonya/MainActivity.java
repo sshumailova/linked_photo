@@ -1,5 +1,7 @@
 package com.android.linkedphotoShSonya;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -84,6 +86,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private PostAdapter postAdapter;
     private DbManager dbManager;
     private Query mQuery;
+    private final int EDIT_RES = 12;
     public static String MAUTh = "";
     public String current_cat = MyConstants.ALL_PHOTOS;
     private AccountHelper accountHelper;
@@ -95,6 +98,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private OnBitMapLoaded onBitMapLoaded;
     private String UserName;
     private String UserPhoto;
+    //private ActivityResultLauncher<Intent> editLauncher;
+    private ActivityResultLauncher<Intent> signInLauncher;
 
 
     @Override
@@ -106,6 +111,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         setContentView(rootBinding.getRoot());
         addAds(mainContent.adView);
         init();
+        onGoogleSignInResult();
+        // onEditResult();
 
     }
 
@@ -121,6 +128,13 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     }
 
+    //private  void onEditResult(){// инициализируе лаунчер и уже после  того как создастся обьявление -возвращаемся на mainActivity НУЖНО ДЛЯ НИЖНИЙ ПАНЕЛИ УРОК 120
+//editLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result -> {
+//    if(result.getData()!=null){
+//        current_cat=result.getData().getStringExtra("cat");
+//    }
+//});
+//}
     private void resumeCat() {
         switch (current_cat) {
             case MyConstants.MY_ADS:
@@ -143,12 +157,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         };
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch ((requestCode)) {
-            case AccountHelper.GOOGLE_SIGN_IN_CODE:
-                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+    private void onGoogleSignInResult() {
+        signInLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getData() != null) {
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
                 //GoogleSignInAccount account= null;
                 try {
                     GoogleSignInAccount account = task.getResult(ApiException.class);
@@ -157,28 +169,14 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                         // Picasso.get().load(account.getPhotoUrl()).into(navHeader.imPhoto);
                         //String a=account.getEmail();
                         //accountHelper.createUserWithGoogle(a);
-                        Log.d("MyLog", "onActivityResuly : " + requestCode);
-                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 0, account);
+                        //Log.d("MyLog", "onActivityResuly : " + requestCode);
+                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), account);
                     }
                 } catch (ApiException e) {
                     e.printStackTrace();
                 }
-
-                break;
-            case AccountHelper.GOOGLE_SIGN_IN_LINK_CODE:
-                Task<GoogleSignInAccount> task2 = GoogleSignIn.getSignedInAccountFromIntent(data);
-                //GoogleSignInAccount account= null;
-                try {
-                    GoogleSignInAccount account = task2.getResult(ApiException.class);
-                    if (account != null) {
-                        accountHelper.SignInFireBaseGoogle(account.getIdToken(), 1, account);
-                    }
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                }
-
-                break;
-        }
+            }
+        });
     }
 
     public void onStart() {
@@ -206,13 +204,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         initDrawer();
         postAdapter.setDbManager(dbManager);
         setNavViewStyle();
-        mainContent.filterDialogLayout.imCloseFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FilterManager.clearFilter(preferences);
-                mainContent.filterDialogLayout.filterHideLayout.setVisibility(View.GONE);
-                dbManager.clearFilter();
-            }
+        mainContent.filterDialogLayout.imCloseFilter.setOnClickListener(view -> {
+            FilterManager.clearFilter(preferences);
+            mainContent.filterDialogLayout.filterHideLayout.setVisibility(View.GONE);
+            dbManager.clearFilter();
         });
     }
 
@@ -342,9 +337,11 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             accountHelper.signInAnonimous();
         }
     }
-private void showAdminPanel(boolean visible){
+
+    private void showAdminPanel(boolean visible) {
         rootBinding.navView.getMenu().findItem(R.id.adminCatID).setVisible(visible);
-}
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -436,13 +433,13 @@ private void showAdminPanel(boolean visible){
     private void setNavViewStyle() {
         Menu menu = rootBinding.navView.getMenu();
         MenuItem categoryAccountItem = menu.findItem(R.id.accountCatId);
-        MenuItem categoryAdmin= menu.findItem(R.id.adminCatID);
+        MenuItem categoryAdmin = menu.findItem(R.id.adminCatID);
         SpannableString sp = new SpannableString(categoryAccountItem.getTitle());
         SpannableString sp1 = new SpannableString(categoryAdmin.getTitle());
-    sp.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)),0,sp.length(),0);
-    sp1.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)),0,sp1.length(),0);
-    categoryAccountItem.setTitle(sp);
-    categoryAdmin.setTitle(sp1);
+        sp.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)), 0, sp.length(), 0);
+        sp1.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.green)), 0, sp1.length(), 0);
+        categoryAccountItem.setTitle(sp);
+        categoryAdmin.setTitle(sp1);
     }
 
     @Override
@@ -464,4 +461,7 @@ private void showAdminPanel(boolean visible){
         postAdapter.updateAdapter(listData);
     }
 
+    public ActivityResultLauncher<Intent> getSignInLauncher() {
+        return signInLauncher;
+    }
 }

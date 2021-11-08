@@ -1,5 +1,6 @@
 package com.android.linkedphotoShSonya.utils
 
+import android.content.ContentUris
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
@@ -18,6 +19,8 @@ object ImagePicker {
             when (it.status) {
                 PixEventCallback.Status.SUCCESS ->{
                     listener.onImageSelected(it.data[0])
+                   // Log.d("MyLog","ImageSelected");
+
 
                 } //use results as it.data
 
@@ -40,6 +43,6 @@ object ImagePicker {
 
     }
     interface  Listener{
-        fun onImageSelected(uri: Uri)// если я хочу что бы была возможность вбрыть несколько картинок сразу- нужно передавать list
+        fun onImageSelected(uri:  Uri)// если я хочу что бы была возможность вбрыть несколько картинок сразу- нужно передавать list
     }
 }

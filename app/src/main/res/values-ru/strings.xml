@@ -65,4 +65,7 @@
     <string name="decline">Отклонить</string>
     <string name="delete">Удалить</string>
     <string name="empty">Пусто</string>
+    <string name="county">Страна:</string>
+    <string name="city">Город:</string>
+
 </resources>

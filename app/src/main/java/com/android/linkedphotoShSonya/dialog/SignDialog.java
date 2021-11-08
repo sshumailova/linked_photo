@@ -232,7 +232,7 @@ public class SignDialog  {
                             @Override
                             public void onComplete(@NonNull @NotNull Task<Void> task) {
                                 if (task.isSuccessful()) {
-                                    accountHelper.SignInGoogle(AccountHelper.GOOGLE_SIGN_IN_CODE);
+                                    accountHelper.SignInGoogle(0);
                                 }
                             }
                         });

@@ -8,10 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,7 +18,7 @@ import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.R;
-import com.android.linkedphotoShSonya.act.ShowLayoutActivityActivity;
+import com.android.linkedphotoShSonya.act.ShowLayoutActivity;
 import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.firebase.auth.FirebaseUser;
@@ -119,16 +115,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     }
 
     public void updateAdapter(List<NewPost> listData) {
-        if (needClear) {
-            mainPostList.clear();
-        } else {
-            listData.remove(0);
-        }
-        if (listData.size() == MyConstants.ADS_LIMIT) {
-            NewPost tempPost = new NewPost();
-            tempPost.setUid(NEXT_PAGE);
-            listData.add(tempPost);
-        }
+        needClearAdapter(listData);
+        addNextButton(listData);
+        notifiDataChanged(listData);
+        removeNextButton(listData);
+    }
+
+    private void notifiDataChanged(List<NewPost> listData) {// проверяет размер массива и смотрит куда нужно доавлять
         int myArraySize = mainPostList.size() - 1;
         if (myArraySize == -1) {
             myArraySize = 0;
@@ -139,13 +132,31 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         } else {
             notifyItemRangeChanged(myArraySize, listData.size());
         }
-        if (listData.size() < MyConstants.ADS_LIMIT - 1 && mainPostList.size() > 0) {
+    }
+
+    private void addNextButton(List<NewPost> listData) {//добавляет кнопку если нужно next
+        if (listData.size() == MyConstants.ADS_LIMIT) {
+            NewPost tempPost = new NewPost();
+            tempPost.setUid(NEXT_PAGE);
+            listData.add(tempPost);
+        }
+    }
+
+    private void removeNextButton(List<NewPost> listData) {// удаляет кнопку если она не нужна
+        if (listData.size() < MyConstants.ADS_LIMIT - 1 && mainPostList.size() > 0 && mainPostList.get(mainPostList.size()-1).getUid().equals(NEXT_PAGE)) {
             int pos = mainPostList.size() - 1;
             mainPostList.remove(pos);
             notifyItemRemoved(pos);
         }
-        needClear = true;
+    }
 
+    private void needClearAdapter(List<NewPost> listData) {
+        if (needClear) {
+            mainPostList.clear();
+        } else {
+            listData.remove(0);
+        }
+        needClear = true;
     }
 
     public void setDbManager(DbManager dbManager) {
@@ -154,7 +165,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     private void setFavIfSelected(ViewHolderData holder) {
         FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
-        if (mainPostList.get(holder.getAdapterPosition()).isFav() ||user.isAnonymous()) {
+        if (mainPostList.get(holder.getAdapterPosition()).isFav() || user.isAnonymous()) {
             holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
         } else {
             holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
@@ -168,9 +179,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
         public ViewHolderData(@NonNull View itemView) {
             super(itemView);
-           if(itemView.findViewById(R.id.editLayout)!=null){
-               binding = ItemAdsBinding.bind(itemView);
-           }
+            if (itemView.findViewById(R.id.editLayout) != null) {
+                binding = ItemAdsBinding.bind(itemView);
+            }
             itemView.setOnClickListener(this);
         }
 
@@ -188,12 +199,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             });
         }
 
-        public void setData(NewPost newPost) {//тут показываю данные
+        public void setData(NewPost newPost) {//тут показываю данные - слушатель нажатий!
             actionIfAnonymous(newPost);
 
             Picasso.get().load(newPost.getImageId()).into(binding.imAds);
             binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
             binding.tvName.setText(newPost.getName());
+            Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvTotalViews.setText(newPost.getTotal_views());
@@ -203,7 +215,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.deleteButton.setOnClickListener(onClickItem(newPost));
             binding.imEditItem.setOnClickListener(onClickItem(newPost));
             binding.imFav.setOnClickListener(onClickItem(newPost));
+            binding.NameAndLogo.setOnClickListener(onClickItem(newPost));
         }
+
         private View.OnClickListener onClickItem(NewPost newPost) {
             return view -> {
                 if (view.getId() == R.id.deleteButton) {
@@ -212,6 +226,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                     onClickEdit(newPost);
                 } else if (view.getId() == R.id.imFav) {
                     onClickFav(newPost);
+                } else if (view.getId() == R.id.NameAndLogo) {
+                    dbManager.getAllOwnerAds(newPost.getUid());
                 }
             };
         }
@@ -239,7 +255,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 binding.imFav.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
                 binding.tvQuantityLike.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
                 if (user.isAnonymous()) {
-                    binding.imFav.setImageResource(R.drawable.ic_fav_selected);}
+                    binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+                }
             }
         }
 
@@ -251,7 +268,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             int totalViews = Integer.parseInt(newPost.getTotal_views());
             totalViews++;
             //onItemClickCustom.onItemSelected(getAdapterPosition());
-            Intent i = new Intent(context, ShowLayoutActivityActivity.class);
+            Intent i = new Intent(context, ShowLayoutActivity.class);
             i.putExtra(MyConstants.New_POST_INTENT, newPost);
             i.putExtra(MyConstants.EDIT_STATE, true);
             context.startActivity(i);

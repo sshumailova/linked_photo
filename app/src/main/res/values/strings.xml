@@ -67,4 +67,7 @@
     <string name="decline">Decline</string>
     <string name="delete">Delete</string>
     <string name="empty">Empty</string>
+    <string name="county">Country:</string>
+
+    <string name="city">City:</string>
 </resources>

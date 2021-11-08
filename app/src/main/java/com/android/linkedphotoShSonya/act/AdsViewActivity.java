@@ -1,5 +1,7 @@
 package com.android.linkedphotoShSonya.act;
 
+import static com.google.android.gms.ads.MobileAds.initialize;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.ads.AdRequest;
@@ -33,7 +35,7 @@ public class AdsViewActivity extends AppCompatActivity {
         }
     }
     public void addAds(AdView adView) {
-        MobileAds.initialize(this);
+        initialize(this);
         AdRequest adRequest = new AdRequest.Builder().build();
      adView.loadAd(adRequest);
      this.adView=adView;

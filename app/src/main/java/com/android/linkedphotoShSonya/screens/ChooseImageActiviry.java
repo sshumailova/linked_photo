@@ -187,4 +187,10 @@ public class ChooseImageActiviry extends AppCompatActivity {
         Picasso.get().load(uri).into(imagesViews[position]);
 
     }
+
+    @Override
+    public void onBackPressed() {// нажатие на кнопку назад
+        onClickBack(null);
+
+    }
 }
