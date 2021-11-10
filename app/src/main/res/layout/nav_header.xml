@@ -41,12 +41,11 @@
 
         <ImageView
             android:id="@+id/UserPhoto"
-            android:layout_width="83dp"
+            android:layout_width="51dp"
             android:layout_height="50dp"
             android:layout_marginEnd="10dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/tvName"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tvEmail"
+            tools:layout_editor_absoluteY="1dp"
             tools:srcCompat="@tools:sample/avatars" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,6 +3,7 @@ package com.android.linkedphotoShSonya.act;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -77,7 +78,20 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         setContentView(rootElement.getRoot());
         init();
         onResultLauncher();
+        changeRotate();
         //getMyIntent();
+    }
+
+    private void changeRotate() {
+        rootElement.imRotate.setOnClickListener(
+                v -> {
+                    if (imageAdapter.getCount() == 0) {
+                        return;
+                    }
+                    Bitmap bm = imageAdapter.getBitMapAt(rootElement.viewPager.getCurrentItem());
+                    imageAdapter.setBitmap(rotateBitmap(bm), rootElement.viewPager.getCurrentItem());
+                }
+        );
     }
 
     private void init() {
@@ -199,7 +213,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             finish();
             return;
         }
-        Bitmap bitmap = bitMapArrayList.get(load_image_counter);
+        Bitmap bitmap = imageAdapter.getBitMapAt(load_image_counter);
         sendImageToStorage(getBytesFromBitMap(bitmap));
     }
 
@@ -415,7 +429,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
             uploadNextUpdateImage();
         });
     }
-    private void compareUpdateImageArrays(){
+
+    private void compareUpdateImageArrays() {
         Bitmap bitmap = null;
         // первое условие :если ссылка на старой позиции равна ссылке на новой (ничего не изменилось)
         if (uploadUri[load_image_counter].equals(uploadNewUri[load_image_counter])) {
@@ -470,6 +485,12 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         } else {
             Toast.makeText(this, R.string.country_notSelected, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private Bitmap rotateBitmap(Bitmap bm) {
+        Matrix mx = new Matrix();
+        mx.setRotate(90);
+        return Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), mx, true);
     }
 
     public EditLayoutBinding getRootElement() {

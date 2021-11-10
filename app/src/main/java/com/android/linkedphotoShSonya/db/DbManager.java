@@ -1,6 +1,7 @@
 package com.android.linkedphotoShSonya.db;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
@@ -9,11 +10,14 @@ import androidx.annotation.NonNull;
 
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.Observed;
 import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.Status.StatusItem;
+import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.MainAppClass;
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -106,7 +110,6 @@ public class DbManager {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
                 mainAppClass.setAdmin(false);
             listener.onResult(false);
             }

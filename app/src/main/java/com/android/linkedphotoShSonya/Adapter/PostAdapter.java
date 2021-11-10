@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ItemAdsBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.act.EditActivity;
@@ -227,11 +228,18 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 } else if (view.getId() == R.id.imFav) {
                     onClickFav(newPost);
                 } else if (view.getId() == R.id.NameAndLogo) {
-                    dbManager.getAllOwnerAds(newPost.getUid());
+                   UserListPhotoActivity(newPost);
+                    //dbManager.getAllOwnerAds(newPost.getUid());
                 }
             };
         }
-
+public void UserListPhotoActivity(NewPost newPost){
+    Intent intent=new Intent(context,PersonListActiviti.class);
+    intent.putExtra("Uid",newPost.getUid());
+    intent.putExtra("userName",newPost.getName());
+    intent.putExtra("userPhoto", newPost.getLogoUser());
+    context.startActivity(intent);
+}
         public void onClickFav(NewPost newPost) {
             FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
             if (user.isAnonymous()) {

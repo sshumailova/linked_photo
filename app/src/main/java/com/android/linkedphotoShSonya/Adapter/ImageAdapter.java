@@ -30,7 +30,6 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     private ImagesManager imagesManager;
 
 
-
     public ImageAdapter(Activity context) {
         this.context = context;
         imagesManager = new ImagesManager(context, this);
@@ -41,6 +40,15 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     @Override
     public int getCount() {
         return bmList.size();
+    }
+
+    public Bitmap getBitMapAt(int pos) {
+        return bmList.get(pos);
+    }
+
+    public void setBitmap(Bitmap bm, int pos) {
+        bmList.set(pos, bm);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -70,12 +78,13 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
 
     public void updateImages(List<String> images) {
 
-        imagesManager.resizeMultiLargeImages(images,context);
-       // Log.d("MyLog", "Update" + images.get(0));
+        imagesManager.resizeMultiLargeImages(images, context);
+        // Log.d("MyLog", "Update" + images.get(0));
     }
+
     @Override
     public void onBitmapLoadedd(final List<Bitmap> bitmap) {
-        Log.d("MyLog","OnBitmapLoadded"+bitmap.size());
+        Log.d("MyLog", "OnBitmapLoadded" + bitmap.size());
         context.runOnUiThread(new Runnable() {
             @Override
             public void run() {
