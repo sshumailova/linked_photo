@@ -15,6 +15,12 @@
         android:theme="@style/AppTheme.NoToolBar"
         tools:replace="android:theme">
         <activity
+            android:name=".act.FollowersActivity"
+            android:exported="true" />
+        <activity
+            android:name=".act.PersonListActiviti"
+            android:exported="true" />
+        <activity
             android:name=".act.ScaleImageActivity"
             android:exported="true" />
         <activity

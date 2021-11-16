@@ -1,5 +1,6 @@
 package com.android.linkedphotoShSonya.accounthelper;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.User;
@@ -58,7 +60,7 @@ import java.util.List;
 public class AccountHelper implements Observer {
     String name;
     private FirebaseAuth mAuth;
-    private MainActivity activity;
+    private MainActivity activity;//было MAinActivity
     private AlertDialog dialog;
     private GoogleSignInClient signInClient;
     private String temp_email;
@@ -70,18 +72,25 @@ public class AccountHelper implements Observer {
     private StorageReference mStorageRef;
     private Uri uploadUri;
     private int index=0;
+    private PersonListActiviti personListActiviti;
 
 
     public AccountHelper(String name) {
         this.name = name;
     }
 
-    public AccountHelper(FirebaseAuth mAuth, MainActivity activity, DbManager dbManager) {
+    public AccountHelper(FirebaseAuth mAuth, MainActivity activity, DbManager dbManager) {//было MAinActivity
         this.mAuth = mAuth;
         this.activity = activity;
         googleAccountManager();
         this.dbManager = dbManager;
     }
+//    public AccountHelper(FirebaseAuth mAuth, PersonListActiviti activity, DbManager dbManager) {
+//        this.mAuth = mAuth;
+//        this.personListActiviti = activity;
+//       // googleAccountManager();
+//        this.dbManager = dbManager;
+//    }
 
     //Sign Up by email
     public boolean signUp(String email, String password, String name, Bitmap bitmap) {
@@ -103,7 +112,7 @@ public class AccountHelper implements Observer {
                                     sendEmailVerifocation(user);
                                     Log.d("MyLog ", "Create user " + name);
                                 }
-                                activity.updateUI();
+                                 activity.updateUI();
 
                             } else {
                                 // If sign in fails, display a message to the user.

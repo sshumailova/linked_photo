@@ -22,6 +22,7 @@ import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.act.ShowLayoutActivity;
 import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.MyConstants;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
@@ -144,7 +145,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     }
 
     private void removeNextButton(List<NewPost> listData) {// удаляет кнопку если она не нужна
-        if (listData.size() < MyConstants.ADS_LIMIT - 1 && mainPostList.size() > 0 && mainPostList.get(mainPostList.size()-1).getUid().equals(NEXT_PAGE)) {
+        if (listData.size() < MyConstants.ADS_LIMIT - 1 && mainPostList.size() > 0 && mainPostList.get(mainPostList.size() - 1).getUid().equals(NEXT_PAGE)) {
             int pos = mainPostList.size() - 1;
             mainPostList.remove(pos);
             notifyItemRemoved(pos);
@@ -165,11 +166,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     }
 
     private void setFavIfSelected(ViewHolderData holder) {
-        FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
-        if (mainPostList.get(holder.getAdapterPosition()).isFav() || user.isAnonymous()) {
-            holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
-        } else {
-            holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
+        if (context instanceof MainActivity) {
+            FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+            if (mainPostList.get(holder.getAdapterPosition()).isFav() || user.isAnonymous()) {
+                holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+            } else {
+                holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
+            }
+        }
+        if (context instanceof PersonListActiviti) {
+            FirebaseUser user = ((PersonListActiviti) context).getmAuth().getCurrentUser();
+            if (mainPostList.get(holder.getAdapterPosition()).isFav() || user.isAnonymous()) {
+                holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+            } else {
+                holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
+            }
+            holder.binding.NameAndLogo.setVisibility(View.GONE);
+
         }
     }
     //ViewHolder class
@@ -188,21 +201,33 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
 
         public void setNextItemData() {
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String lastTitleTime = mainPostList.get(mainPostList.size() - 2).getDisc().toLowerCase() + "_" +
-                            mainPostList.get(mainPostList.size() - 2).getTime();
-                    dbManager.getDataFromDb(((MainActivity) context).current_cat, lastTitleTime);
-                    isStartPage = false;
-                    needClear = false;
-                }
-            });
+            if (context instanceof MainActivity) {
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String lastTitleTime = mainPostList.get(mainPostList.size() - 2).getDisc().toLowerCase() + "_" +
+                                mainPostList.get(mainPostList.size() - 2).getTime();
+                        dbManager.getDataFromDb(((MainActivity) context).current_cat, lastTitleTime);
+                        isStartPage = false;
+                        needClear = false;
+                    }
+                });
+            }
+            if (context instanceof PersonListActiviti) {
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String lastTitleTime = mainPostList.get(mainPostList.size() - 2).getDisc().toLowerCase() + "_" +
+                                mainPostList.get(mainPostList.size() - 2).getTime();
+                        dbManager.getDataFromDb(((PersonListActiviti) context).current_cat, lastTitleTime);
+                        isStartPage = false;
+                        needClear = false;
+                    }
+                });
+            }
         }
-
         public void setData(NewPost newPost) {//тут показываю данные - слушатель нажатий!
             actionIfAnonymous(newPost);
-
             Picasso.get().load(newPost.getImageId()).into(binding.imAds);
             binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
             binding.tvName.setText(newPost.getName());
@@ -228,25 +253,37 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 } else if (view.getId() == R.id.imFav) {
                     onClickFav(newPost);
                 } else if (view.getId() == R.id.NameAndLogo) {
-                   UserListPhotoActivity(newPost);
+                    UserListPhotoActivity(newPost);
                     //dbManager.getAllOwnerAds(newPost.getUid());
                 }
             };
         }
-public void UserListPhotoActivity(NewPost newPost){
-    Intent intent=new Intent(context,PersonListActiviti.class);
-    intent.putExtra("Uid",newPost.getUid());
-    intent.putExtra("userName",newPost.getName());
-    intent.putExtra("userPhoto", newPost.getLogoUser());
-    context.startActivity(intent);
-}
+
+        public void UserListPhotoActivity(NewPost newPost) {
+            Intent intent = new Intent(context, PersonListActiviti.class);
+            intent.putExtra("Uid", newPost.getUid());
+            intent.putExtra("userName", newPost.getName());
+            intent.putExtra("userPhoto", newPost.getLogoUser());
+            context.startActivity(intent);
+        }
+
         public void onClickFav(NewPost newPost) {
-            FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
-            if (user.isAnonymous()) {
-                return;
+            if (context instanceof MainActivity) {
+                FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+                if (user.isAnonymous()) {
+                    return;
+                }
+                setFavCounter(newPost);// при нажатии на сердце - запускается проверка
+                dbManager.updateFav(newPost, ViewHolderData.this);
             }
-            setFavCounter(newPost);// при нажатии на сердце - запускается проверка
-            dbManager.updateFav(newPost, ViewHolderData.this);
+            if (context instanceof PersonListActiviti) {
+                FirebaseUser user = ((PersonListActiviti) context).getmAuth().getCurrentUser();
+                if (user.isAnonymous()) {
+                    return;
+                }
+                setFavCounter(newPost);// при нажатии на сердце - запускается проверка
+                dbManager.updateFav(newPost, ViewHolderData.this);
+            }
         }
 
         private void onClickEdit(NewPost newPost) {
@@ -257,15 +294,29 @@ public void UserListPhotoActivity(NewPost newPost){
         }
 
         private void actionIfAnonymous(NewPost newPost) {
-            FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
-            if (user != null) {
-                binding.editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
-                binding.imFav.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
-                binding.tvQuantityLike.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
-                if (user.isAnonymous()) {
-                    binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+            if (context instanceof MainActivity) {
+                FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+                if (user != null) {
+                    binding.editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
+                    binding.imFav.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
+                    binding.tvQuantityLike.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
+                    if (user.isAnonymous()) {
+                        binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+                    }
                 }
             }
+            if (context instanceof PersonListActiviti) {
+                FirebaseUser user = ((PersonListActiviti) context).getmAuth().getCurrentUser();
+                if (user != null) {
+                    binding.editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
+                    binding.imFav.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
+                    binding.tvQuantityLike.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);
+                    if (user.isAnonymous()) {
+                        binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+                    }
+                }
+            }
+
         }
 
         @Override

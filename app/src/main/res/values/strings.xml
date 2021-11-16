@@ -70,4 +70,6 @@
     <string name="county">Country:</string>
 
     <string name="city">City:</string>
+    <string name="my_followers">My followers</string>
+    <string name="my_subscriptions">My subscriptions</string>
 </resources>

@@ -4,12 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.Adapter.Subscribers;
 import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.Observed;
 import com.android.linkedphotoShSonya.Observer;
@@ -54,6 +56,7 @@ public class DbManager {
     public static final String VISIBILITY = "visibility";
     public static final String ACCEPTED = "accepted";
     public static final String DECLINED = "declined";
+    private Subscribers subscribesrsInt;
     private Context context;
     private Query mQuery;
     private Query mQueryUser;
@@ -70,7 +73,8 @@ public class DbManager {
     private int deleteImageCounter = 0;
     private String searchText = "";
     public List<User> usersList;// список юзеров которые есть в бд
-    public List<Observer> subscribes;// список подписчиков
+    public List<String> listSubscribes;// список подписчиков
+    public List<Observer> subscribes;
 
 
     public DbManager(Context context) {
@@ -80,12 +84,16 @@ public class DbManager {
         if (context instanceof Observer) {
             this.observer = (Observer) context;
         }
+//        if (context instanceof Subscribers) {
+//            this.subscribesInt = (Subscribers) context;
+//        }
         this.context = context;
         newPostList = new ArrayList<>();
         mainAppClass = ((MainAppClass) context.getApplicationContext());
         mainNode = mainAppClass.getMainDbRef();
         users = mainAppClass.getUserDbRef();
         usersList = new ArrayList<>();
+        listSubscribes = new ArrayList<>();
         subscribes = new ArrayList<>();
 
     }
@@ -111,7 +119,7 @@ public class DbManager {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 mainAppClass.setAdmin(false);
-            listener.onResult(false);
+                listener.onResult(false);
             }
         });
     }
@@ -125,10 +133,18 @@ public class DbManager {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
     }
+
+    public void getMySubscription(String orderBy) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mQuery = users.child(currentUser.getUid()).child("subscriptions").child("userUid");
+        //readSubscription();
+    }
+
     public void getAllOwnerAds(String uid) {
-        mQuery = mainNode.orderByChild(uid+ "/post/uid").equalTo(uid);
+        mQuery = mainNode.orderByChild(uid + "/post/uid").equalTo(uid);
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
     }
+
     public void getAdminAds() {
         mQuery = mainNode.orderByChild("status/status/visibility").equalTo("waiting");
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
@@ -143,12 +159,12 @@ public class DbManager {
         String orderBy = getOrderBy(cat, filterToUse);
         cat += "_";
         cat = useCategory(orderBy, filterToUse, cat);
-        orderBy= getOrderByFilter(orderBy,cat,filterToUse);
+        orderBy = getOrderByFilter(orderBy, cat, filterToUse);
         Log.d("MyLog", "Filter by : " + cat + filter + lastTitleTime);
         String name = searchText;
         if (!lastTitleTime.isEmpty()) {
             name = "";
-            lastTitleTime=searchText.isEmpty()? lastTitleTime.split("_")[1]: lastTitleTime;
+            lastTitleTime = searchText.isEmpty() ? lastTitleTime.split("_")[1] : lastTitleTime;
         }
         mQuery = mainNode.orderByChild(orderBy).startAt(cat + filter + searchText).endAt(cat + filter + name + lastTitleTime + "\uf8ff").limitToLast(MyConstants.ADS_LIMIT);
 
@@ -170,11 +186,11 @@ public class DbManager {
             return cat;
         }
     }
-    private String getOrderByFilter(String orderBy,String cat,String filterToUse){
+
+    private String getOrderByFilter(String orderBy, String cat, String filterToUse) {
         if (!orderByFilter.isEmpty()) {
-            return  (cat.isEmpty()) ? filterToUse + "/" + orderByFilter : filterToUse + "/cat_" + orderByFilter;
-        }
-        else {
+            return (cat.isEmpty()) ? filterToUse + "/" + orderByFilter : filterToUse + "/cat_" + orderByFilter;
+        } else {
             return orderBy;
         }
     }
@@ -197,15 +213,16 @@ public class DbManager {
 //
 //    }
 
-    //    public void creatUser(FirebaseUser firebaseUser, String name) {
-//        User user = new User();
-//        String key = FirebaseDatabase.getInstance().getReference().push().getKey();
-//        user.setKey(key);
-//        user.setId(firebaseUser.getUid());
-//        user.setName(name);
-//          mainAppClass.getMainDbRef().child(key).setValue(user);
-//
-//    }
+    public void creatUser(FirebaseUser firebaseUser, String name) {
+        User user = new User();
+        String key = FirebaseDatabase.getInstance().getReference().push().getKey();
+        user.setKey(key);
+        user.setId(firebaseUser.getUid());
+        user.setName(name);
+        mainAppClass.getMainDbRef().child(key).setValue(user);
+
+    }
+
     public void deleteItem(final NewPost newPost) {
         StorageReference sRef = null;
         switch (deleteImageCounter) {
@@ -436,28 +453,14 @@ public class DbManager {
         return FAv_ADS_PATh + "/" + mainAppClass.getAuth().getUid() + "/" + USER_FAV_ID;
     }
 
+    public String getMySubc() {
+        return "subscriptions" + "/" + mainAppClass.getAuth().getUid() + "/" + "userUid: ";
+    }
+
     public void setSearchText(String searchText) {
         this.searchText = searchText;
     }
 
-    //    public void addUser(FirebaseUser currentUser) {
-//      //  FirebaseUser currentUser = mainAppClass.getAuth().getCurrentUser();
-//        mainAppClass.getUserDbRef().addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for (DataSnapshot ds : snapshot.getChildren()) {
-//                    User user = null;
-//                    user = ds.getValue(User.class);
-//                    if (user.getId().equals(currentUser.getUid())) {
-//                        break;
-//                    }
-//                }
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
     public List<User> ListOfUsers() {
         mQueryUser = users;
 //        fillingUserList();
@@ -488,6 +491,53 @@ public class DbManager {
         });
     }
 
+    public void readSubscription() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+   mQuery = users.child(currentUser.getUid()).child("subscriptions");
+        mQuery.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (listSubscribes.size() > 0) {
+                    listSubscribes.clear();
+                }
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String uidSubc = (String)ds.child("userUid").getValue().toString();
+                    // String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
+                    listSubscribes.add(uidSubc);
+                    Log.d("MyLog", "Data sub size" + snapshot.getChildrenCount() + uidSubc);
+                }
+                subscribesrsInt.onDataSubcRecived(listSubscribes);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+//        mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                if (listSubscribes.size() > 0) {
+//                    listSubscribes.clear();
+//                }
+//                for (DataSnapshot ds : snapshot.getChildren()) {
+//                    String uidSubc = ds.child("userUid").getValue(String.class);
+//                    listSubscribes.add(uidSubc);
+//                    Log.d("MyLog","read "+ ds.child("userUid").getChildren().toString());
+//                }
+//                subscribesInt.onDataSubcRecived(listSubscribes);
+//            }
+//
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//
+//        });
+
+    }
+
     public boolean IsUserInDb(String email) {
         usersList = ListOfUsers();
         for (int i = 0; i < usersList.size(); i++) {
@@ -516,4 +566,50 @@ public class DbManager {
     public interface ResultListener {
         void onResult(boolean result);
     }
+
+    public void setOnSubscriptions(Subscribers subscribersInt) {
+        this.subscribesrsInt = subscribersInt;
+    }
+
+    public void AddSubscription(String uid) {
+        // readSubscription();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+//            mainAppClass.getUserDbRef()
+            FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(currentUser.getUid()).child("subscriptions").child(uid).child("userUid").setValue(uid);
+        }
+    }
+
+    public void removeSubscription(String uid) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+//            mainAppClass.getUserDbRef()
+            FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(currentUser.getUid()).child("subscriptions").child(uid).removeValue();
+//            {
+//                @Override
+//                public void onComplete(@NonNull @NotNull Task<Void> task) {
+//                    if (task.isSuccessful()) {
+//                        Toast.makeText(context, "Subscription remove!", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            }););
+        }
+    }
+
+//    public boolean isSubscription(String uid) {
+//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        mQuery = users.child(currentUser.getUid()).child("subscriptions");
+//        readSubscription();
+//        if (listSubscribes.size() == 0) {
+//            return false;;
+//        }
+//        for(int i=0;i<listSubscribes.size();i++)
+//        {
+//            Log.d("MyLog" , "subUid "+ listSubscribes.get(i));
+//        }
+//        if (listSubscribes.contains(uid)) {
+//            return true;
+//        }
+//        return false;
+//    }
 }

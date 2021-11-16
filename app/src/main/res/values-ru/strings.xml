@@ -67,5 +67,7 @@
     <string name="empty">Пусто</string>
     <string name="county">Страна:</string>
     <string name="city">Город:</string>
+    <string name="my_followers">Мои подписчики</string>
+    <string name="my_subscriptions">Мои подписки</string>
 
 </resources>

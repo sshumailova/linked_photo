@@ -11,6 +11,12 @@
         </menu>
     </item>
     <group android:checkableBehavior="single">
+        <item android:title="@string/my_subscriptions"
+            android:id="@+id/my_subscriptions"
+            android:icon="@drawable/ic_baseline_people_alt_24"/>
+        <item android:title="@string/my_followers"
+            android:id="@+id/my_followers"
+            android:icon="@drawable/ic_baseline_people_alt_24"/>
         <item android:title="@string/my_files"
             android:id="@+id/id_my_files"
             android:icon="@drawable/ic_my_files"/>

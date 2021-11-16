@@ -105,6 +105,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MyLog","OnCreate");
         super.onCreate(savedInstanceState);
         rootBinding = ActivityMainBinding.inflate(getLayoutInflater());
         navHeader = NavHeaderBinding.inflate(getLayoutInflater(), rootBinding.navView, false);
@@ -119,6 +120,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     protected void onResume() {
         super.onResume();
+        Log.d("MyLog"," onResume");
         dbManager.onResume(preferences);
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
@@ -190,6 +192,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //}
     public void onStart() {
         super.onStart();
+        Log.d("MyLog"," onStart");
         updateUI();
     }
 
@@ -218,6 +221,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             mainContent.filterDialogLayout.filterHideLayout.setVisibility(View.GONE);
             dbManager.clearFilter();
         });
+        //FFdbManager.readSubscription();
     }
 
     public void closeFragment() {
@@ -362,6 +366,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         final int id_sing_out = R.id.id_sing_out;
         final int id_my_fav = R.id.id_fav;
         final int id_admin = R.id.id_admin;
+        final  int my_subscriptions=R.id.my_subscriptions;
         postAdapter.isStartPage = true;
         switch (id) {
             case id_admin:
@@ -377,8 +382,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 current_cat = MyConstants.MY_FAVS;
                 dbManager.getMyAds(dbManager.getMyFavAdsNode());
                 mainContent.toolbar.setTitle(R.string.my_favs);
-
                 break;
+//            case my_subscriptions:
+//                dbManager.getMySubscription(dbManager.getMySubc());
+//break;
             case id_all_files:
                 //current_cat = "Лента";
                 current_cat = MyConstants.ALL_PHOTOS;
@@ -473,7 +480,9 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
 
     protected void onPause() {
+
         super.onPause();
+        Log.d("MyLog","OnPAuce");
     }
 
     public ActivityResultLauncher<Intent> getSignInLauncher() {
