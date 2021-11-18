@@ -462,7 +462,7 @@ public class DbManager {
     }
 
     public List<User> ListOfUsers() {
-        mQueryUser = users;
+        mQueryUser = users.child("users");
 //        fillingUserList();
         return usersList;
     }
@@ -476,7 +476,7 @@ public class DbManager {
 //                    usersList.clear();
 //                }
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    User user = ds.getValue(User.class);
+                    User user = ds.child("user").getValue(User.class);
                     users.add(user);
                 }
 
@@ -491,17 +491,89 @@ public class DbManager {
         });
     }
 
+    //    public User searchSubcripOnDb(String uid){
+//        users.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for (DataSnapshot ds : snapshot.getChildren()) {
+//                    User user = ds.getValue(User.class);
+//                    if (user.getId().equals(uid)) {
+//                        return user;
+//                    }
+//                }
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+////
+//        });
+//    }
+    public void loadFollowers(String uid) {
+        users.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    User user = ds.getValue(User.class);
+                    if (ds.child("uid").getChildren().equals(uid)) {
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+    }
+
+    public void loadSubscription(List<String> listSubscribes) {
+        List<User> usersSub = new ArrayList<>();
+        for (int i = 0; i < listSubscribes.size(); i++) {
+            int finalI = i;
+            users.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        User user = ds.child("user").getValue(User.class);
+                        if (user.getId().equals(listSubscribes.get(finalI))) {
+                            Log.d("MyLog", "user " + user.getId() + " subsc" + listSubscribes.get(finalI));
+                            usersSub.add(user);
+                            break;
+
+                        }
+                    }
+                    if (finalI == listSubscribes.size() - 1) {
+                        Log.d("MyLog", "userSubSize" + usersSub.size());
+                        observer.handleEvent(usersSub);
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+//
+            });
+        }
+
+        // observer.handleEvent(usersSub);
+    }
+
     public void readSubscription() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-   mQuery = users.child(currentUser.getUid()).child("subscriptions");
-        mQuery.addValueEventListener(new ValueEventListener() {
+        String s = currentUser.getUid();
+        users.child(currentUser.getUid()).child("subscriptions").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (listSubscribes.size() > 0) {
                     listSubscribes.clear();
                 }
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    String uidSubc = (String)ds.child("userUid").getValue().toString();
+                    String uidSubc = (String) ds.child("userUid").getValue().toString();
                     // String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
                     listSubscribes.add(uidSubc);
                     Log.d("MyLog", "Data sub size" + snapshot.getChildrenCount() + uidSubc);
@@ -514,27 +586,6 @@ public class DbManager {
 
             }
         });
-//        mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (listSubscribes.size() > 0) {
-//                    listSubscribes.clear();
-//                }
-//                for (DataSnapshot ds : snapshot.getChildren()) {
-//                    String uidSubc = ds.child("userUid").getValue(String.class);
-//                    listSubscribes.add(uidSubc);
-//                    Log.d("MyLog","read "+ ds.child("userUid").getChildren().toString());
-//                }
-//                subscribesInt.onDataSubcRecived(listSubscribes);
-//            }
-//
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//
-//        });
 
     }
 
@@ -550,7 +601,7 @@ public class DbManager {
 
     public void addUser(User user) {
         this.usersList.add(user);
-        mainAppClass.getUserDbRef().child(user.getId()).setValue(user);
+        mainAppClass.getUserDbRef().child(user.getId()).child("user").setValue(user);
 //mainAppClass.getFs().getReference("ImagesUserLogo")
     }
 

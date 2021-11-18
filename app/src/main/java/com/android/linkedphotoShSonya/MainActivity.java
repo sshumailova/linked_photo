@@ -36,6 +36,8 @@ import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.act.AdminActivity;
 import com.android.linkedphotoShSonya.act.AdsViewActivity;
 import com.android.linkedphotoShSonya.act.EditActivity;
+import com.android.linkedphotoShSonya.act.FollowersActivity;
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.android.linkedphotoShSonya.databinding.MainContentBinding;
 import com.android.linkedphotoShSonya.databinding.NavHeaderBinding;
@@ -105,7 +107,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("MyLog","OnCreate");
+        Log.d("MyLog", "OnCreate");
         super.onCreate(savedInstanceState);
         rootBinding = ActivityMainBinding.inflate(getLayoutInflater());
         navHeader = NavHeaderBinding.inflate(getLayoutInflater(), rootBinding.navView, false);
@@ -120,7 +122,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     protected void onResume() {
         super.onResume();
-        Log.d("MyLog"," onResume");
+        Log.d("MyLog", " onResume");
         dbManager.onResume(preferences);
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
@@ -192,7 +194,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 //}
     public void onStart() {
         super.onStart();
-        Log.d("MyLog"," onStart");
+        Log.d("MyLog", " onStart");
         updateUI();
     }
 
@@ -314,7 +316,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot ds : snapshot.getChildren()) {
                             User user = null;
-                            user = ds.getValue(User.class);
+                            user = ds.child("user").getValue(User.class);
                             if (user.getId().equals(currentUser.getUid())) {
                                 UserName = user.getName();
                                 UserPhoto = user.getImageId();
@@ -366,7 +368,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         final int id_sing_out = R.id.id_sing_out;
         final int id_my_fav = R.id.id_fav;
         final int id_admin = R.id.id_admin;
-        final  int my_subscriptions=R.id.my_subscriptions;
+        final int my_subscriptions = R.id.my_subscriptions;
+        final int my_followers = R.id.my_followers;
         postAdapter.isStartPage = true;
         switch (id) {
             case id_admin:
@@ -383,9 +386,15 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 dbManager.getMyAds(dbManager.getMyFavAdsNode());
                 mainContent.toolbar.setTitle(R.string.my_favs);
                 break;
-//            case my_subscriptions:
-//                dbManager.getMySubscription(dbManager.getMySubc());
-//break;
+            case my_subscriptions:
+                Intent intent = new Intent(MainActivity.this, FollowersActivity.class);
+                intent.putExtra("type","my_subscriptions");
+                startActivity(intent);
+                break;
+            case my_followers:
+                Intent intent2 = new Intent(MainActivity.this, FollowersActivity.class);
+                intent2.putExtra("type","my_followers");
+                startActivity(intent2);
             case id_all_files:
                 //current_cat = "Лента";
                 current_cat = MyConstants.ALL_PHOTOS;
@@ -482,7 +491,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     protected void onPause() {
 
         super.onPause();
-        Log.d("MyLog","OnPAuce");
+        Log.d("MyLog", "OnPAuce");
     }
 
     public ActivityResultLauncher<Intent> getSignInLauncher() {

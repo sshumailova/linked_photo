@@ -192,6 +192,7 @@ public class AccountHelper implements Observer {
         activity.getSignInLauncher().launch(signInIntent);
 
 
+
     }
 
     public void SignInFireBaseGoogle(String idToken, GoogleSignInAccount account) {

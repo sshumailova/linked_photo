@@ -120,6 +120,7 @@ public class SignDialog  {
                 login = binding.edName.getText().toString();
                 email = binding.edEmail.getText().toString();
                 password = binding.edPassword.getText().toString();
+                dialog.dismiss();
                 getImage();
 
             }
@@ -140,8 +141,8 @@ public class SignDialog  {
         }
     }
     private void getImage() {
-        dialog.dismiss();
-        ImagePickerForSignUp.INSTANCE.getImage((ImagePickerForSignUp.Listener) uri -> {
+       // dialog.dismiss();
+        ImagePickerForSignUp.INSTANCE.getImage(uri -> {
             Log.d("MyLog", "ChooseFoeSign : " + uri);
             try {
                 selectedimage(uri);
