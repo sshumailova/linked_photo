@@ -71,7 +71,7 @@ public class DbManager {
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
-    private String searchText = "";
+    private String searchText= "" ;
     public List<User> usersList;// список юзеров которые есть в бд
     public List<String> listSubscribes;// список подписчиков
     public List<Observer> subscribes;
@@ -127,6 +127,7 @@ public class DbManager {
     public void clearFilter() {
         filter = "";
         orderByFilter = "";
+
     }
 
     public void getMyAds(String orderBy) {
@@ -172,6 +173,9 @@ public class DbManager {
     }
 
     private String getFilterToUse() {
+        boolean a=searchText.isEmpty();
+        String s=searchText;
+        Log.d("MyLog", " searchT "+ a+ " Sea "+ s+"ddd");
         return searchText.isEmpty() ? STATUS + "/" + FILTER2 : "/" + FILTER1;
     }
 
@@ -509,18 +513,20 @@ public class DbManager {
 ////
 //        });
 //    }
-    public void loadFollowers(String uid) {
-        users.addListenerForSingleValueEvent(new ValueEventListener() {
+    public void loadFollowers() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        List<User> usersSub = new ArrayList<>();
+        mQuery=users.orderByChild("subscriptions"+"/"+ currentUser.getUid()+ "/" + "userUid").equalTo(currentUser.getUid());
+        mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    User user = ds.getValue(User.class);
-                    if (ds.child("uid").getChildren().equals(uid)) {
+                    User user = ds.child("user").getValue(User.class);
+                    usersSub.add(user);
 
                     }
+                observer.handleEvent(usersSub);
                 }
-            }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -629,9 +635,11 @@ public class DbManager {
 //            mainAppClass.getUserDbRef()
             FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(currentUser.getUid()).child("subscriptions").child(uid).child("userUid").setValue(uid);
         }
+
     }
 
     public void removeSubscription(String uid) {
+
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
 //            mainAppClass.getUserDbRef()

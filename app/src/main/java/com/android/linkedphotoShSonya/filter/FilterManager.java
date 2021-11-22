@@ -19,6 +19,7 @@ public class FilterManager {
 
     public static void clearFilter(SharedPreferences preferences) {
         preferences.edit().clear().apply();
+
     }
 
     public static String getFilterText(String filter) {
@@ -54,7 +55,7 @@ public class FilterManager {
             }
 
         }
-        orderByFilter.append("disc_time");
+        orderByFilter.append("name_time");
         Log.d("MyLog","Order By: "+ orderByFilter.toString());
         return orderByFilter.toString();
 }

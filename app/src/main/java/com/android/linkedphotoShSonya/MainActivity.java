@@ -222,6 +222,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             FilterManager.clearFilter(preferences);
             mainContent.filterDialogLayout.filterHideLayout.setVisibility(View.GONE);
             dbManager.clearFilter();
+            updateUI();
+
         });
         //FFdbManager.readSubscription();
     }

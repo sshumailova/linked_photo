@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +18,7 @@ import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.Adapter.Subscribers;
+import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.databinding.PersonListActivitiBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
@@ -109,6 +112,8 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
         initRcView();
         postAdapter.setDbManager(dbManager);
         showData();
+        binding.removeSub.setOnClickListener(onClickItem());
+        binding.addSubscription.setOnClickListener(onClickItem());
         ///FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
@@ -178,30 +183,61 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
     }
 
 
-    public void OnclickAddSubscription(View view) {
-        dbManager.AddSubscription(uid);
+    public void AddSubscription() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(PersonListActiviti.this);
+        builder.setMessage(R.string.add_subscrip);
+        builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dbManager.AddSubscription(uid);
+            }
+        });
+        builder.show();
+
        // dbManager.readSubscription();
 
     }
 
-    public void OnclickRemoveSubscription(View view) {
-        dbManager.removeSubscription(uid);
-        dbManager.readSubscription();
+    public void RemoveSubscription() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(PersonListActiviti.this);
+            builder.setMessage(R.string.remove_subscrip);
+            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
 
+                }
+            });
+            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface,int i) {
+                    removeSub();
+                }
+            });
+            builder.show();
+    }
+    public void removeSub(){
+        dbManager.removeSubscription(uid);
+        //dbManager.readSubscription();
+    }
+    private View.OnClickListener onClickItem() {
+        return view -> {
+            if (view.getId() == R.id.addSubscription) {
+                AddSubscription();
+
+            } else if (view.getId() == R.id.removeSub) {
+                RemoveSubscription();
+            }
+        };
     }
     @Override
     public void onDataSubcRecived(List<String> subcribers) {
-//        for (int i = 0; i <= subcribers.size(); i++) {
-//            if (subcribers.get(i).toString().equals(uid)) {
-//                binding.addSubscription.setVisibility(View.GONE);
-//                binding.removeSub.setVisibility(View.VISIBLE);
-//                break;
-//            } else {
-//                binding.addSubscription.setVisibility(View.VISIBLE);
-//            }
-//        }
-
-        if (subcribers.contains(uid)) {
+if (subcribers.contains(uid)) {
             binding.addSubscription.setVisibility(View.GONE);
             binding.removeSub.setVisibility(View.VISIBLE);
         } else {

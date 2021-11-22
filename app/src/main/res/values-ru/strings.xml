@@ -69,5 +69,7 @@
     <string name="city">Город:</string>
     <string name="my_followers">Мои подписчики</string>
     <string name="my_subscriptions">Мои подписки</string>
+    <string name="add_subscrip">Вы хотите подписаться на этого пользователя?</string>
+    <string name="remove_subscrip">Вы хотете отписаться от этого пользователя?</string>
 
 </resources>

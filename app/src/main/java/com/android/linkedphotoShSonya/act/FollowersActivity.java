@@ -56,7 +56,9 @@ public class FollowersActivity extends AppCompatActivity implements Subscribers,
         }
         if(type.equals("my_followers")){
             dbManager=new DbManager(this);
-
+            dbManager = new DbManager(this);
+            dbManager.loadFollowers();
+            buildRececlerView();
         }
     }
 
