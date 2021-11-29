@@ -8,6 +8,7 @@ public class User  implements Serializable {
     private String key;
     private String email;
     private String imageId;
+    private String description;
 
     public String getEmail() {
         return email;
@@ -48,6 +49,7 @@ public class User  implements Serializable {
                 ", id='" + id + '\'' +
                 ", key='" + key + '\'' +
                 ", email='" + email + '\'' +
+                ", description ='" + description + '\'' +
                 '}';
     }
 
@@ -58,5 +60,13 @@ public class User  implements Serializable {
 
    public void setImageId(String imageId) {
         this.imageId = imageId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -3,10 +3,8 @@ package com.android.linkedphotoShSonya;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
@@ -15,19 +13,13 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.SearchView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.android.linkedphotoShSonya.Adapter.DataSender;
@@ -37,7 +29,6 @@ import com.android.linkedphotoShSonya.act.AdminActivity;
 import com.android.linkedphotoShSonya.act.AdsViewActivity;
 import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.FollowersActivity;
-import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.android.linkedphotoShSonya.databinding.MainContentBinding;
 import com.android.linkedphotoShSonya.databinding.NavHeaderBinding;
@@ -51,19 +42,14 @@ import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.ImagesManager;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.OnBitMapLoaded;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -71,8 +57,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,6 +95,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         super.onCreate(savedInstanceState);
         rootBinding = ActivityMainBinding.inflate(getLayoutInflater());
         navHeader = NavHeaderBinding.inflate(getLayoutInflater(), rootBinding.navView, false);
+        navHeader.NameAndLogo.setOnClickListener(onClickItem());
         mainContent = rootBinding.mainContent;
         setContentView(rootBinding.getRoot());
         addAds(mainContent.adView);
@@ -119,7 +104,23 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         // onEditResult();
 
     }
+    private View.OnClickListener onClickItem() {
+        return view -> {
+            if (view.getId() == R.id.NameAndLogo) {
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                if (currentUser != null) {
+                    if (currentUser.isAnonymous()) {
+                        //кароч тут надо сделать диалоговое окно
+                    }
+                    Intent intent = new Intent(MainActivity.this, userActivity.class);
+                    intent.putExtra("Uid", currentUser.getUid());
+                    startActivity(intent);
 
+                }
+            }
+
+        };
+    }
     protected void onResume() {
         super.onResume();
         Log.d("MyLog", " onResume");
@@ -225,6 +226,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             updateUI();
 
         });
+
         //FFdbManager.readSubscription();
     }
 

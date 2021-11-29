@@ -74,4 +74,6 @@
     <string name="my_subscriptions">My subscriptions</string>
     <string name="add_subscrip">Do you want to subscribe to this user?</string>
     <string name="remove_subscrip">Do you want to remove this user?</string>
+    <string name="aboutMe">About me</string>
+    <string name="saveChange">Save</string>
 </resources>

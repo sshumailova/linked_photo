@@ -42,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PersonListActiviti extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        SearchView.OnQueryTextListener, DataSender, Subscribers {
+        SearchView.OnQueryTextListener, DataSender{
 
     private List<NewPost> newPostList;
     private MainAppClass mainAppClass;
@@ -97,14 +97,24 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
             uid = i.getStringExtra("Uid");
             UserName = i.getStringExtra("userName");
             UserPhoto = i.getStringExtra("userPhoto");
+          String a =i.getStringExtra("isSubscriber");
+          if(a.equals("false")){
+              binding.addSubscription.setVisibility(View.VISIBLE);
+              binding.removeSub.setVisibility(View.GONE);
+          }
+          if(a.equals("true")){
+              binding.addSubscription.setVisibility(View.GONE);
+              binding.removeSub.setVisibility(View.VISIBLE);
+          }
+
             binding.tvEmail.setText(UserName);
             Picasso.get().load(UserPhoto).transform(new CircleTransform()).into(binding.UserPhoto);
         }
         setOnItemClickCustom();
         mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
-        dbManager.setOnSubscriptions(this);
-        dbManager.readSubscription();
+       // dbManager.setOnSubscriptions(this);
+       // dbManager.readSubscription();
         // dbManager.readSubscription();
         // getDataSub();
         //accountHelper = new AccountHelper(mAuth, this, dbManager);
@@ -196,53 +206,72 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dbManager.AddSubscription(uid);
+                binding.addSubscription.setVisibility(View.GONE);
+                binding.removeSub.setVisibility(View.VISIBLE);
+                //dbManager.readSubscription();
             }
         });
         builder.show();
 
-       // dbManager.readSubscription();
+        //  dbManager.readSubscription();
 
     }
 
     public void RemoveSubscription() {
-            AlertDialog.Builder builder = new AlertDialog.Builder(PersonListActiviti.this);
-            builder.setMessage(R.string.remove_subscrip);
-            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(PersonListActiviti.this);
+        builder.setMessage(R.string.remove_subscrip);
+        builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
 
-                }
-            });
-            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface,int i) {
-                    removeSub();
-                }
-            });
-            builder.show();
+            }
+        });
+        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                removeSub();
+                binding.addSubscription.setVisibility(View.VISIBLE);
+                binding.removeSub.setVisibility(View.GONE);
+            }
+        });
+        builder.show();
+//        dbManager.readSubscription();
+//        showData();
+
     }
-    public void removeSub(){
+
+    public void removeSub() {
         dbManager.removeSubscription(uid);
-        //dbManager.readSubscription();
+        // dbManager.readSubscription();
     }
+
     private View.OnClickListener onClickItem() {
         return view -> {
             if (view.getId() == R.id.addSubscription) {
                 AddSubscription();
+               // dbManager.readSubscription();
 
             } else if (view.getId() == R.id.removeSub) {
                 RemoveSubscription();
+               // dbManager.readSubscription();
+
             }
         };
     }
-    @Override
-    public void onDataSubcRecived(List<String> subcribers) {
-if (subcribers.contains(uid)) {
-            binding.addSubscription.setVisibility(View.GONE);
-            binding.removeSub.setVisibility(View.VISIBLE);
-        } else {
-            binding.addSubscription.setVisibility(View.VISIBLE);
-            binding.removeSub.setVisibility(View.GONE);
-        }
-    }
+
+//    @Override
+//    public void onDataSubcRecived(List<String> subcribers) {
+//        Log.d("MyLog","SubListSizze" + subcribers.size());
+//        if (subcribers.size() == 0) {
+//            binding.addSubscription.setVisibility(View.VISIBLE);
+//            binding.removeSub.setVisibility(View.GONE);
+//        }
+//       else if (subcribers.contains(uid)) {
+//            binding.addSubscription.setVisibility(View.GONE);
+//            binding.removeSub.setVisibility(View.VISIBLE);
+//        } else {
+//            binding.addSubscription.setVisibility(View.VISIBLE);
+//            binding.removeSub.setVisibility(View.GONE);
+//        }
+//    }
 }

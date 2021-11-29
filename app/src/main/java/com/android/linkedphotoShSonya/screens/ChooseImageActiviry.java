@@ -37,6 +37,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
     private ImagesManager imagesManager;
     private OnBitMapLoaded onBitMapLoaded;
     private boolean isImagesLoaded = true;
+    private boolean isChoosePhoto = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
     }
 
     public void MainImage(View view) {
+        isChoosePhoto = true;
         if (!isImagesLoaded) {
             Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
@@ -91,6 +93,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
     }
 
     public void onClickImage2(View view) {
+        isChoosePhoto = true;
         if (!isImagesLoaded) {
             Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
@@ -99,6 +102,7 @@ public class ChooseImageActiviry extends AppCompatActivity {
     }
 
     public void onClickImage3(View view) {
+        isChoosePhoto = true;
         if (!isImagesLoaded) {
             Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show();
             return;
@@ -130,15 +134,18 @@ public class ChooseImageActiviry extends AppCompatActivity {
     }
 
     public void onClickBack(View view) {
-        Intent i = new Intent();
-        i.putExtra("uriMain", uris[0]);
-        i.putExtra("uri2", uris[1]);
-        i.putExtra("uri3", uris[2]);
-
-        setResult(RESULT_OK, i);
-        finish();
+        if (isChoosePhoto == true) {
+            closePixFragment();
+            isChoosePhoto = false;
+        } else {
+            Intent i = new Intent();
+            i.putExtra("uriMain", uris[0]);
+            i.putExtra("uri2", uris[1]);
+            i.putExtra("uri3", uris[2]);
+            setResult(RESULT_OK, i);
+            finish();
+        }
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

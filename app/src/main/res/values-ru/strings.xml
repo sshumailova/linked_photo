@@ -71,5 +71,7 @@
     <string name="my_subscriptions">Мои подписки</string>
     <string name="add_subscrip">Вы хотите подписаться на этого пользователя?</string>
     <string name="remove_subscrip">Вы хотете отписаться от этого пользователя?</string>
+    <string name="aboutMe">Обо мне</string>
+    <string name="saveChange">Сохранить</string>
 
 </resources>

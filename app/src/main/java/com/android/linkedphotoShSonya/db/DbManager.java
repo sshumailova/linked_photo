@@ -71,10 +71,11 @@ public class DbManager {
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
-    private String searchText= "" ;
+    private String searchText = "";
     public List<User> usersList;// список юзеров которые есть в бд
     public List<String> listSubscribes;// список подписчиков
     public List<Observer> subscribes;
+    private boolean One = false;
 
 
     public DbManager(Context context) {
@@ -141,6 +142,13 @@ public class DbManager {
         //readSubscription();
     }
 
+    public void getCurrentUser() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mQueryUser = users.child(currentUser.getUid());
+        if(mQueryUser!=null){
+        One=true;
+    }}
+
     public void getAllOwnerAds(String uid) {
         mQuery = mainNode.orderByChild(uid + "/post/uid").equalTo(uid);
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
@@ -173,9 +181,9 @@ public class DbManager {
     }
 
     private String getFilterToUse() {
-        boolean a=searchText.isEmpty();
-        String s=searchText;
-        Log.d("MyLog", " searchT "+ a+ " Sea "+ s+"ddd");
+        boolean a = searchText.isEmpty();
+        String s = searchText;
+        Log.d("MyLog", " searchT " + a + " Sea " + s + "ddd");
         return searchText.isEmpty() ? STATUS + "/" + FILTER2 : "/" + FILTER1;
     }
 
@@ -433,6 +441,16 @@ public class DbManager {
         });
     }
 
+    public void updateFieldSubcrib(List<NewPost> list, final PostAdapter.ViewHolderData holder, String uid) {
+        for (int i = 0; i < list.size(); i++) {
+            NewPost newPost = list.get(i);
+            if (newPost.getUid().equals(uid)) {
+                holder.binding.AddSub.setVisibility(View.GONE);
+            }
+
+        }
+    }
+
     public void deleteFav(NewPost newPost, final PostAdapter.ViewHolderData holder) {
         if (mainAppClass.getAuth().getUid() == null) {
             return;
@@ -472,51 +490,58 @@ public class DbManager {
     }
 
     public void loadAllUsers(Observer observer) {
-        users.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<User> users = new ArrayList<>();
-//                if (usersList.size() > 0) {
-//                    usersList.clear();
-//                }
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    User user = ds.child("user").getValue(User.class);
-                    users.add(user);
+        if (One == true) {
+            mQueryUser.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    List<User> users = new ArrayList<>();
+                    if (usersList.size() > 0) {
+                        usersList.clear();
+                    }
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        User user = ds.getValue(User.class);
+                        users.add(user);
+                    }
+
+                    observer.handleEvent(users);
                 }
 
-                observer.handleEvent(users);
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+//             });
+            });
+      One=false;  } else {
+            users.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    List<User> users = new ArrayList<>();
+                    if (usersList.size() > 0) {
+                        usersList.clear();
+                    }
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        User user = ds.child("user").getValue(User.class);
+                        users.add(user);
+                    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                    observer.handleEvent(users);
+                }
 
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
 //
-        });
+            });
+        }
     }
 
-    //    public User searchSubcripOnDb(String uid){
-//        users.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for (DataSnapshot ds : snapshot.getChildren()) {
-//                    User user = ds.getValue(User.class);
-//                    if (user.getId().equals(uid)) {
-//                        return user;
-//                    }
-//                }
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-////
-//        });
-//    }
+
+
     public void loadFollowers() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         List<User> usersSub = new ArrayList<>();
-        mQuery=users.orderByChild("subscriptions"+"/"+ currentUser.getUid()+ "/" + "userUid").equalTo(currentUser.getUid());
+        mQuery = users.orderByChild("subscriptions" + "/" + currentUser.getUid() + "/" + "userUid").equalTo(currentUser.getUid());
         mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -524,9 +549,10 @@ public class DbManager {
                     User user = ds.child("user").getValue(User.class);
                     usersSub.add(user);
 
-                    }
-                observer.handleEvent(usersSub);
                 }
+                observer.handleEvent(usersSub);
+            }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -584,7 +610,7 @@ public class DbManager {
                     listSubscribes.add(uidSubc);
                     Log.d("MyLog", "Data sub size" + snapshot.getChildrenCount() + uidSubc);
                 }
-                subscribesrsInt.onDataSubcRecived(listSubscribes);
+                subscribesrsInt.onDataSubcRecived(listSubscribes); // не хочет передавать нулевой
             }
 
             @Override
@@ -594,6 +620,7 @@ public class DbManager {
         });
 
     }
+
 
     public boolean IsUserInDb(String email) {
         usersList = ListOfUsers();

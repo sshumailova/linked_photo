@@ -312,6 +312,7 @@ public class AccountHelper implements Observer {
         user.setName(name);
         user.setEmail(email);
         user.setImageId(uploadUri.toString());
+        user.setDescription("");
         if (key != null) {
             dbManager.addUser(user);
         }

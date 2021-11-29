@@ -26,9 +26,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> {
+public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData> implements Subscribers {
     public static final String TAG = "MyLog";
     public static final String NEXT_PAGE = "nextPage";
     private List<NewPost> mainPostList;
@@ -41,6 +42,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
     public boolean isStartPage = true;
     private int NEXT_ADS_B = 1;
     private boolean needClear = true;
+    private List<String> subcribersList = new ArrayList<>();
 
 
     public PostAdapter(List<NewPost> arrayPost, Context context, OnItemClickCustom onItemClickCustom) {
@@ -112,6 +114,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         builder.show();
     }
 
+    @Override
+    public void onDataSubcRecived(List<String> subcribers) {
+        if (subcribersList.size() > 0) {
+            subcribersList.clear();
+        }
+        subcribersList.addAll(subcribers);
+    }
+
+
     public interface OnItemClickCustom {
         void onItemSelected(int position);
     }
@@ -163,7 +174,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     public void setDbManager(DbManager dbManager) {
         this.dbManager = dbManager;
+        dbManager.setOnSubscriptions(this);
+        dbManager.readSubscription();
     }
+
 
     private void setFavIfSelected(ViewHolderData holder) {
         if (context instanceof MainActivity) {
@@ -182,6 +196,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 holder.binding.imFav.setImageResource(R.drawable.ic_fav_not_selected);
             }
             holder.binding.NameAndLogo.setVisibility(View.GONE);
+            holder.binding.AddSub.setVisibility(View.GONE);
 
         }
     }
@@ -189,6 +204,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     public class ViewHolderData extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ItemAdsBinding binding;
+        private String uid;
 
 
         public ViewHolderData(@NonNull View itemView) {
@@ -226,7 +242,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 });
             }
         }
-        public void setData(NewPost newPost) {//тут показываю данные - слушатель нажатий!
+
+        public void setData(NewPost newPost) {
+            //тут показываю данные - слушатель нажатий!
             actionIfAnonymous(newPost);
             Picasso.get().load(newPost.getImageId()).into(binding.imAds);
             binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
@@ -235,6 +253,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvTotalViews.setText(newPost.getTotal_views());
+            uid = newPost.getUid();
+            isItSubc();
             //tvQuantityLike.setText((int) newPost.getFavCounter());
             //Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
             Picasso.get().load(newPost.getLogoUser()).transform(new CircleTransform()).into(binding.UserPhoto);
@@ -242,6 +262,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.imEditItem.setOnClickListener(onClickItem(newPost));
             binding.imFav.setOnClickListener(onClickItem(newPost));
             binding.NameAndLogo.setOnClickListener(onClickItem(newPost));
+            binding.addSub.setOnClickListener(onClickItem(newPost));
+        }
+
+        private void isItSubc() {
+            if (subcribersList.size() == 0) {
+                binding.addSub.setVisibility(View.VISIBLE);
+            } else if (subcribersList.contains(uid)) {
+                binding.addSub.setVisibility(View.GONE);
+            } else {
+                binding.addSub.setVisibility(View.VISIBLE);
+            }
         }
 
         private View.OnClickListener onClickItem(NewPost newPost) {
@@ -255,12 +286,28 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 } else if (view.getId() == R.id.NameAndLogo) {
                     UserListPhotoActivity(newPost);
                     //dbManager.getAllOwnerAds(newPost.getUid());
+                } else if (view.getId() == R.id.addSub) {
+                    addSubscription(newPost);
                 }
             };
         }
 
+        public void addSubscription(NewPost newPost) {
+            dbManager.AddSubscription(newPost.getUid());
+          //updateAdapter(getMainList());
+            dbManager.updateFieldSubcrib(getMainList(),ViewHolderData.this, newPost.getUid());
+            notifyDataSetChanged();
+          //  binding.addSub.setVisibility(View.GONE);
+        }
+
         public void UserListPhotoActivity(NewPost newPost) {
             Intent intent = new Intent(context, PersonListActiviti.class);
+            if (binding.addSub.getVisibility() == View.GONE) {
+                intent.putExtra("isSubscriber", "true");
+            }
+            if (binding.addSub.getVisibility() == View.VISIBLE) {
+                intent.putExtra("isSubscriber", "false");
+            }
             intent.putExtra("Uid", newPost.getUid());
             intent.putExtra("userName", newPost.getName());
             intent.putExtra("userPhoto", newPost.getLogoUser());
@@ -342,16 +389,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.tvQuantityLike.setText(String.valueOf(fCounter));
             newPost.setFavCounter((long) fCounter);
         }
+
+
+        public void clearAdapter() {
+            mainPostList.clear();
+            notifyDataSetChanged();
+        }
+
+        public List<NewPost> getMainList() {
+            return mainPostList;
+        }
+
+
     }
-
-    public void clearAdapter() {
-        mainPostList.clear();
-        notifyDataSetChanged();
-    }
-
-    public List<NewPost> getMainList() {
-        return mainPostList;
-    }
-
-
 }
