@@ -29,6 +29,7 @@ import com.android.linkedphotoShSonya.act.AdminActivity;
 import com.android.linkedphotoShSonya.act.AdsViewActivity;
 import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.FollowersActivity;
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.android.linkedphotoShSonya.databinding.MainContentBinding;
 import com.android.linkedphotoShSonya.databinding.NavHeaderBinding;
@@ -46,6 +47,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -104,6 +106,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         // onEditResult();
 
     }
+
     private View.OnClickListener onClickItem() {
         return view -> {
             if (view.getId() == R.id.NameAndLogo) {
@@ -121,6 +124,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
         };
     }
+
     protected void onResume() {
         super.onResume();
         Log.d("MyLog", " onResume");
@@ -202,7 +206,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private void init() {
         preferences = getSharedPreferences(MyConstants.MAIN_PREF, MODE_PRIVATE);
         setOnItemClickCustom();
-        newAdItem = findViewById(R.id.fb);
+        // newAdItem = findViewById(R.id.fb);
 //        drawerLayout.openDrawer(GravityCompat.START);
         mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
@@ -219,6 +223,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         initDrawer();
         postAdapter.setDbManager(dbManager);
         setNavViewStyle();
+        setBottomNavListener();
         mainContent.filterDialogLayout.imCloseFilter.setOnClickListener(view -> {
             FilterManager.clearFilter(preferences);
             mainContent.filterDialogLayout.filterHideLayout.setVisibility(View.GONE);
@@ -257,7 +262,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         mainContent.toolbar.inflateMenu(R.menu.menu);
         SearchView searchView = (SearchView) mainContent.toolbar.getMenu().findItem(R.id.main_search).getActionView();
         searchView.setOnQueryTextListener(this);
-        onToolbarItemClick();
+
     }
 
     private void initDrawer() {
@@ -310,7 +315,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             if (currentUser.isAnonymous()) {
-                newAdItem.setVisibility(View.GONE);
+                // newAdItem.setVisibility(View.GONE); тут сделать невидимиы
                 myFavsItem.setVisible(false);
                 myAdsItem.setVisible(false);
                 navHeader.tvEmail.setText(R.string.host);
@@ -338,7 +343,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                     }
                 };
                 mQuery.addListenerForSingleValueEvent(listener);
-                newAdItem.setVisibility(View.VISIBLE);
+                //newAdItem.setVisibility(View.VISIBLE); Тут сделать невидимым
                 myFavsItem.setVisible(true);
                 myAdsItem.setVisible(true);
 //                if(currentUser.getUid().equals(myRef)){
@@ -392,12 +397,12 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 break;
             case my_subscriptions:
                 Intent intent = new Intent(MainActivity.this, FollowersActivity.class);
-                intent.putExtra("type","my_subscriptions");
+                intent.putExtra("type", "my_subscriptions");
                 startActivity(intent);
                 break;
             case my_followers:
                 Intent intent2 = new Intent(MainActivity.this, FollowersActivity.class);
-                intent2.putExtra("type","my_followers");
+                intent2.putExtra("type", "my_followers");
                 startActivity(intent2);
             case id_all_files:
                 //current_cat = "Лента";
@@ -428,7 +433,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     }
 
-    public void onClickEdit(View view) {
+    public void onClickEdit() {
         if (mAuth.getCurrentUser() != null) {
             if (mAuth.getCurrentUser().isEmailVerified()) {
                 Intent i = new Intent(MainActivity.this, EditActivity.class);
@@ -447,15 +452,31 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     }
 
 
-    private void onToolbarItemClick() {
-        mainContent.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+    private void setBottomNavListener() {
+        rootBinding.mainContent.bNavMenu.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.filter) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.new_add) {
+                    onClickEdit();
+                } else if (item.getItemId() == R.id.filter) {
                     Intent intent = new Intent(MainActivity.this, FilterActivity.class);
                     startActivity(intent);
+                } else if (item.getItemId() == R.id.id_my_ads) {
+                    Intent intent = new Intent(MainActivity.this, PersonListActiviti.class);
+                    FirebaseUser currentUser = mAuth.getCurrentUser();
+                   // String =navHeader.tvEmail.getText().toString();
+                    intent.putExtra("Uid", currentUser.getUid());
+                    intent.putExtra("isSubscriber", "itIsCurrentUser");
+//                    intent.putExtra("userName",navHeader.tvEmail.getText().toString());
+//                    intent.putExtra("userPhoto", navHeader.UserPhoto.getDrawable().toString());
+                    startActivity(intent);
+
+                } else if (item.getItemId() == R.id.id_fav) {
+                    current_cat = MyConstants.MY_FAVS;
+                    dbManager.getMyAds(dbManager.getMyFavAdsNode());
+                    mainContent.toolbar.setTitle(R.string.my_favs);
                 }
-                return false;
+                return true;
             }
         });
     }

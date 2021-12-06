@@ -18,6 +18,7 @@ import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.android.linkedphotoShSonya.Adapter.PostAdapter;
 import com.android.linkedphotoShSonya.Adapter.Subscribers;
+import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.android.linkedphotoShSonya.databinding.PersonListActivitiBinding;
@@ -42,7 +43,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PersonListActiviti extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        SearchView.OnQueryTextListener, DataSender{
+        SearchView.OnQueryTextListener, DataSender, Observer {
 
     private List<NewPost> newPostList;
     private MainAppClass mainAppClass;
@@ -95,26 +96,32 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
         if (getIntent() != null) {
             Intent i = getIntent();
             uid = i.getStringExtra("Uid");
-            UserName = i.getStringExtra("userName");
-            UserPhoto = i.getStringExtra("userPhoto");
-          String a =i.getStringExtra("isSubscriber");
-          if(a.equals("false")){
-              binding.addSubscription.setVisibility(View.VISIBLE);
-              binding.removeSub.setVisibility(View.GONE);
-          }
-          if(a.equals("true")){
-              binding.addSubscription.setVisibility(View.GONE);
-              binding.removeSub.setVisibility(View.VISIBLE);
-          }
+//            UserName = i.getStringExtra("userName");
+//            UserPhoto = i.getStringExtra("userPhoto");
 
-            binding.tvEmail.setText(UserName);
-            Picasso.get().load(UserPhoto).transform(new CircleTransform()).into(binding.UserPhoto);
+            String a = i.getStringExtra("isSubscriber");
+            if (a.equals("false")) {
+                binding.addSubscription.setVisibility(View.VISIBLE);
+                binding.removeSub.setVisibility(View.GONE);
+            }
+            if (a.equals("true")) {
+                binding.addSubscription.setVisibility(View.GONE);
+                binding.removeSub.setVisibility(View.VISIBLE);
+            }
+            if (a.equals("itIsCurrentUser")) {
+                binding.addSubscription.setVisibility(View.GONE);
+                binding.removeSub.setVisibility(View.GONE);
+            }
+
         }
         setOnItemClickCustom();
         mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
-       // dbManager.setOnSubscriptions(this);
-       // dbManager.readSubscription();
+        users = FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(uid);
+        dbManager.getCurrentUser(uid);
+        dbManager.loadAllUsers(this);
+        // dbManager.setOnSubscriptions(this);
+        // dbManager.readSubscription();
         // dbManager.readSubscription();
         // getDataSub();
         //accountHelper = new AccountHelper(mAuth, this, dbManager);
@@ -249,15 +256,25 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
         return view -> {
             if (view.getId() == R.id.addSubscription) {
                 AddSubscription();
-               // dbManager.readSubscription();
+                // dbManager.readSubscription();
 
             } else if (view.getId() == R.id.removeSub) {
                 RemoveSubscription();
-               // dbManager.readSubscription();
+                // dbManager.readSubscription();
 
             }
         };
     }
+
+    @Override
+    public void handleEvent(List<User> users) {
+        for (int i = 0; i < users.size(); i++) {
+            User user = users.get(i);
+            binding.tvEmail.setText(user.getName());
+            Picasso.get().load(user.getImageId()).transform(new CircleTransform()).into(binding.UserPhoto);
+        }
+    }
+}
 
 //    @Override
 //    public void onDataSubcRecived(List<String> subcribers) {
@@ -274,4 +291,3 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
 //            binding.removeSub.setVisibility(View.GONE);
 //        }
 //    }
-}

@@ -266,7 +266,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         }
 
         private void isItSubc() {
-            if (subcribersList.size() == 0) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if(currentUser.getUid().equals(uid)){
+                binding.addSub.setVisibility(View.GONE);
+            }
+           else if (subcribersList.size() == 0) {
                 binding.addSub.setVisibility(View.VISIBLE);
             } else if (subcribersList.contains(uid)) {
                 binding.addSub.setVisibility(View.GONE);
@@ -302,15 +306,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
         public void UserListPhotoActivity(NewPost newPost) {
             Intent intent = new Intent(context, PersonListActiviti.class);
-            if (binding.addSub.getVisibility() == View.GONE) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if(currentUser.getUid().equals(uid)){
+                intent.putExtra("isSubscriber","itIsCurrentUser");
+            }
+           else if (binding.addSub.getVisibility() == View.GONE) {
                 intent.putExtra("isSubscriber", "true");
             }
-            if (binding.addSub.getVisibility() == View.VISIBLE) {
+           else if (binding.addSub.getVisibility() == View.VISIBLE) {
                 intent.putExtra("isSubscriber", "false");
             }
+
             intent.putExtra("Uid", newPost.getUid());
-            intent.putExtra("userName", newPost.getName());
-            intent.putExtra("userPhoto", newPost.getLogoUser());
+//            intent.putExtra("userName", newPost.getName());
+//            intent.putExtra("userPhoto", newPost.getLogoUser());
             context.startActivity(intent);
         }
 

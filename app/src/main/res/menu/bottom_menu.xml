@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/new_add"
+        android:icon="@drawable/ic_baseline_library_add_24"
+        android:orderInCategory="400"
+        android:title="New" />
+    <item
+        android:id="@+id/filter"
+        android:icon="@drawable/ic_filter"
+        android:orderInCategory="300"
+        android:title="Filter" />
+    <item
+        android:id="@+id/id_my_ads"
+        android:icon="@drawable/ic_baseline_face_24"
+        android:orderInCategory="200"
+        android:title="MyAds" />
+    <item
+        android:id="@+id/id_fav"
+        android:icon="@drawable/ic_fav_not_selected"
+        android:orderInCategory="100"
+        android:title="MyFav" />
+
+</menu>

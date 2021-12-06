@@ -135,16 +135,18 @@ public class DbManager {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
     }
-
+public void changeMyNotes(String orderBy){
+    mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
+}
     public void getMySubscription(String orderBy) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         mQuery = users.child(currentUser.getUid()).child("subscriptions").child("userUid");
         //readSubscription();
     }
 
-    public void getCurrentUser() {
+    public void getCurrentUser(String uid) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        mQueryUser = users.child(currentUser.getUid());
+        mQueryUser = users.child(uid);
         if(mQueryUser!=null){
         One=true;
     }}
@@ -503,8 +505,7 @@ public class DbManager {
                         users.add(user);
                     }
 
-                    observer.handleEvent(users);
-                }
+                    observer.handleEvent(users);}
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
@@ -597,7 +598,7 @@ public class DbManager {
 
     public void readSubscription() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        String s = currentUser.getUid();
+        if (currentUser != null) {
         users.child(currentUser.getUid()).child("subscriptions").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -617,7 +618,7 @@ public class DbManager {
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
-        });
+        });}
 
     }
 

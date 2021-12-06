@@ -1,5 +1,7 @@
 package com.android.linkedphotoShSonya;
 
+import static com.android.linkedphotoShSonya.db.DbManager.MAIN_ADS_PATH;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -17,9 +19,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.android.linkedphotoShSonya.Adapter.DataSender;
 import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.db.DbManager;
+import com.android.linkedphotoShSonya.db.NewPost;
 import com.android.linkedphotoShSonya.db.User;
 import com.android.linkedphotoShSonya.utils.CircleTransform;
 import com.android.linkedphotoShSonya.utils.ImagePickerForChangePhotoUser;
@@ -41,7 +45,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-public class userActivity extends AppCompatActivity implements Observer {
+public class userActivity extends AppCompatActivity implements Observer, DataSender {
     private String uid;
     private String UserName;
     private String UserPhoto;
@@ -82,7 +86,7 @@ public class userActivity extends AppCompatActivity implements Observer {
         saveButton.setOnClickListener(onClickItem());
         logo.setOnClickListener(onClickItem());
         dbManager = new DbManager(this);
-        dbManager.getCurrentUser();
+        dbManager.getCurrentUser(uid);
         dbManager.loadAllUsers(this);
 
     }
@@ -173,30 +177,25 @@ public class userActivity extends AppCompatActivity implements Observer {
             users.child("user").child("description").setValue(text.getText().toString());
         }
         if ((clickPhoto == true)) {
+            DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
             deletePreviousPhoto();
             Bitmap bitmap = ((BitmapDrawable) logo.getDrawable()).getBitmap();
             saveNewPhoto(bitmap);
-
+           // dRef.child("-Mpqk4ARbFzOVGMSwH31").child(uid).child("post").child("name").removeValue();
+           // dRef.child("-Mpqk4ARbFzOVGMSwH31").child(uid).child("post").push().child("name").setValue("zzzzzzzzz");
+           // dbManager.getMyAds(dbManager.getMyAdsNode());
         }
-        backOnMainActivity();
+       // backOnMainActivity();
     }
 
     private void deletePreviousPhoto() {
-        StorageReference mRef =FirebaseStorage.getInstance().getReferenceFromUrl(photoBeforeChange);
-        mRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                // File deleted successfully
+        Log.d("MyLog","PhotoBefore "+photoBeforeChange);
+        StorageReference mRef = FirebaseStorage.getInstance().getReferenceFromUrl(photoBeforeChange);
+        mRef.delete().addOnCompleteListener(task -> {
                 Log.d("MyLog", "onSuccess: deleted file");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Uh-oh, an error occurred!
-                Log.d("MyLog", "onFailure: did not delete file");
-            }
-        });
-    }
+            });
+        }
+
 
     private void saveNewPhoto(Bitmap bitmap) {
         mStorageRef = FirebaseStorage.getInstance().getReference("ImagesUserLogo");
@@ -214,8 +213,11 @@ public class userActivity extends AppCompatActivity implements Observer {
         }).addOnCompleteListener(new OnCompleteListener<Uri>() {
             @Override
             public void onComplete(@NonNull Task<Uri> task) {
+
                 uploadUri = task.getResult();
+                Log.d("MyLog"," savePhoto "+ uploadUri.toString());
                 users.child("user").child("imageId").setValue(uploadUri.toString());
+                dbManager.getMyAds(dbManager.getMyAdsNode());
             }
         });
     }
@@ -235,7 +237,38 @@ public class userActivity extends AppCompatActivity implements Observer {
             nameBeforeChange = user.getName();
             discBeforeChange = user.getDescription();
             photoBeforeChange = user.getImageId();
+            Log.d("MyLog", "Photo" +photoBeforeChange);
             Picasso.get().load(user.getImageId()).transform(new CircleTransform()).into(logo);
         }
     }
+
+    @Override
+    public void onDataRecived(List<NewPost> listData) {
+        for (int i = 0; i < listData.size(); i++) {
+            Log.d("MyLog", "List" + listData.size());
+            NewPost n = listData.get(i);
+            changeDataOnDb(n, listData.size());
+
+        }
+        backOnMainActivity();
+    }
+
+    public void changeDataOnDb(NewPost newPost, int listDataSize) {
+        Log.d("MyLog", "ListDa" + listDataSize);
+        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(MAIN_ADS_PATH);
+        String key = newPost.getKey();
+       dRef.child(key).child(uid).child("post").child("name").setValue(login.getText().toString());
+//        .addOnCompleteListener(task -> {
+//            if (task.isSuccessful()) {
+                Log.d("MyLog", "key" + key);
+                dRef.child(key).child(uid).child("post").child("logoUser").setValue(uploadUri.toString());
+//                        .addOnCompleteListener(task1 -> {
+//                    if (task1.isSuccessful()) {
+                        Log.d("MyLog", "way l" + dRef.child(key).child(uid).child("post").child("name"));
+                    }
+//                });
+//            }
+
+//        });
+//    }
 }
