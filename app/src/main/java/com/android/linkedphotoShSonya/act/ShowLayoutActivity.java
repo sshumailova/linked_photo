@@ -27,9 +27,14 @@ import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 
 public class ShowLayoutActivity extends AppCompatActivity {
     private ShowLayoutActivityBinding binding;
@@ -94,6 +99,7 @@ public class ShowLayoutActivity extends AppCompatActivity {
             Picasso.get().load(newPost.getLogoUser()).transform(new CircleTransform()).into(binding.UserPhoto);
             binding.tvCountryDisc.setText(newPost.getCountry());
             binding.tvCityDisk.setText(newPost.getCity());
+            getData(newPost);
             if (newPost.isFav() || Objects.requireNonNull(currentUser).isAnonymous()) {
                 binding.imFav.setImageResource(R.drawable.ic_fav_selected);
                 binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
@@ -123,6 +129,14 @@ public class ShowLayoutActivity extends AppCompatActivity {
         }
     }
 
+    public void getData(NewPost newPost) {
+        String dateInMillis = newPost.getTime();
+        long time=Long.parseLong(dateInMillis);
+        SimpleDateFormat formater = new SimpleDateFormat("dd-MM-yyyy");
+        Date date = new Date(time);
+        binding.tvDate.setText(formater.format(date));
+    }
+
     public void Like(View view) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
@@ -150,13 +164,13 @@ public class ShowLayoutActivity extends AppCompatActivity {
         DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
         dRef.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).child(DbManager.USER_FAV_ID).
                 setValue(mAuth.getUid()).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        binding.imFav.setImageResource(R.drawable.ic_fav_selected);
-                        binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
-                        newPost.setFav(true);
+            if (task.isSuccessful()) {
+                binding.imFav.setImageResource(R.drawable.ic_fav_selected);
+                binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
+                newPost.setFav(true);
 
-                    }
-                });
+            }
+        });
     }
 
     public void deleteFav(NewPost newPost) {
@@ -185,7 +199,7 @@ public class ShowLayoutActivity extends AppCompatActivity {
     }
 
     public void ClickScale(View view) {
-        Intent intent=new Intent(ShowLayoutActivity.this,ScaleImageActivity.class);
+        Intent intent = new Intent(ShowLayoutActivity.this, ScaleImageActivity.class);
         intent.putExtra("IMAGE_URI", imagesUris.get(binding.viewPager.getCurrentItem()));
         startActivity(intent);
     }
