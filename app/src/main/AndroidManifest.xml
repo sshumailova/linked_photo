@@ -15,6 +15,9 @@
         android:theme="@style/AppTheme.NoToolBar"
         tools:replace="android:theme">
         <activity
+            android:name=".act.MyChatsActivity"
+            android:exported="true" />
+        <activity
             android:name=".userActivity"
             android:exported="true" />
         <activity
@@ -32,6 +35,9 @@
         <activity
             android:name=".filter.FilterActivity"
             android:theme="@style/FilterTheme" />
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="true" />
         <activity android:name=".screens.ChooseImageActiviry" />
         <activity android:name=".act.ShowLayoutActivity" />
         <activity android:name=".MainActivity">

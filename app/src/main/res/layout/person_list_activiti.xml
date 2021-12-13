@@ -84,10 +84,10 @@
 
             <Button
                 android:id="@+id/addSubscription"
-                android:layout_width="174dp"
-                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="0dp"
-                android:layout_weight="1"
+                android:layout_weight="0.3"
                 android:background="@drawable/header_text_bg"
                 android:backgroundTint="@color/green"
                 android:gravity="center|center_horizontal|center_vertical"
@@ -96,10 +96,18 @@
 
             <Button
                 android:id="@+id/removeSub"
-                android:layout_width="174dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_weight="0.5"
                 android:text="отписаться"
                 android:visibility="gone" />
+
+            <Button
+                android:id="@+id/bStarnChat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.3"
+                android:text="Go to chat" />
         </LinearLayout>
 
 

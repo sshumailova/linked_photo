@@ -12,13 +12,16 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.SearchView;
 
 
@@ -29,6 +32,7 @@ import com.android.linkedphotoShSonya.act.AdminActivity;
 import com.android.linkedphotoShSonya.act.AdsViewActivity;
 import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.FollowersActivity;
+import com.android.linkedphotoShSonya.act.MyChatsActivity;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.android.linkedphotoShSonya.databinding.MainContentBinding;
@@ -87,6 +91,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private OnBitMapLoaded onBitMapLoaded;
     private String UserName;
     private String UserPhoto;
+    private MenuItem myChats;
+    private Toolbar toolbar;
     //private ActivityResultLauncher<Intent> editLauncher;
     private ActivityResultLauncher<Intent> signInLauncher;
 
@@ -103,6 +109,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         addAds(mainContent.adView);
         init();
         onGoogleSignInResult();
+
         // onEditResult();
 
     }
@@ -259,10 +266,14 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     }
 
     private void initToolBar() {
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         mainContent.toolbar.inflateMenu(R.menu.menu);
         SearchView searchView = (SearchView) mainContent.toolbar.getMenu().findItem(R.id.main_search).getActionView();
         searchView.setOnQueryTextListener(this);
-
+       mainContent.toolbar.getMenu().findItem(R.id.go_chats).getActionView();
+        //onOptionsItemSelected(mainContent.toolbar.getMenu().findItem(R.id.go_chats));
+      //  myChats=mainContent.toolbar.getMenu().findItem(R.id.go_chats);
     }
 
     private void initDrawer() {
@@ -366,6 +377,22 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private void showAdminPanel(boolean visible) {
         rootBinding.navView.getMenu().findItem(R.id.adminCatID).setVisible(visible);
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.go_chats) {
+            Intent intent2 = new Intent(MainActivity.this, MyChatsActivity.class);
+            startActivity(intent2);
+
+        }
+        return true;
+    }
+
+
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -384,6 +411,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             case id_admin:
                 startActivity(new Intent(MainActivity.this, AdminActivity.class));
                 break;
+
             case id_my_files:
                 //current_cat = "Мои файлы";
                 current_cat = MyConstants.MY_ADS;
@@ -464,7 +492,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 } else if (item.getItemId() == R.id.id_my_ads) {
                     Intent intent = new Intent(MainActivity.this, PersonListActiviti.class);
                     FirebaseUser currentUser = mAuth.getCurrentUser();
-                   // String =navHeader.tvEmail.getText().toString();
+                    // String =navHeader.tvEmail.getText().toString();
                     intent.putExtra("Uid", currentUser.getUid());
                     intent.putExtra("isSubscriber", "itIsCurrentUser");
 //                    intent.putExtra("userName",navHeader.tvEmail.getText().toString());
@@ -479,6 +507,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 return true;
             }
         });
+
     }
 
     private void setNavViewStyle() {

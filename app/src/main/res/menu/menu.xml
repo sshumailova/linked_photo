@@ -13,9 +13,9 @@
         android:orderInCategory="100"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/new_note"
-        android:icon="@drawable/ic_baseline_library_add_24"
-        android:title="New"
+        android:id="@+id/go_chats"
+        android:icon="@drawable/ic_baseline_send_24"
+        android:title="Chats"
         app:showAsAction="ifRoom"
         android:orderInCategory="300"/>
 

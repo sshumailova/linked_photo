@@ -29,6 +29,9 @@ public class MainAppClass extends Application {
     public DatabaseReference getUserDbRef() {
         return db.getReference(DbManager.USERS);
     }
+    public DatabaseReference getChatDbRef(){
+        return db.getReference(DbManager.CHATS);
+    }
 
     public FirebaseDatabase getDb() {
         return db;

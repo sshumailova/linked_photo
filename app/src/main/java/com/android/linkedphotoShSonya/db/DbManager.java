@@ -20,7 +20,9 @@ import com.android.linkedphotoShSonya.Status.StatusItem;
 import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
+import com.android.linkedphotoShSonya.chat.AwesomeMessage;
 import com.android.linkedphotoShSonya.utils.MyConstants;
+import com.android.linkedphotoShSonya.utils.WayToChat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -47,6 +49,7 @@ public class DbManager {
     public static final String FILTER2 = "filter2";
     public static final String MAIN_ADS_PATH = "main_ads_path";
     public static final String USERS = "users";
+    public static final String CHATS = "chats";
     public static final String MY_FAv_PATh = "my_fav";
     public static final String FAv_ADS_PATh = "fav_path";
     public static final String USER_FAV_ID = "iser_fav_id";
@@ -63,11 +66,13 @@ public class DbManager {
     private List<NewPost> newPostList;
     private DataSender dataSender;
     private Observer observer;
+    private WayToChat wayToChat;
     private MainAppClass mainAppClass;
     private long cat_ads_counter = 0;
     String text;
     private DatabaseReference mainNode;
     private DatabaseReference users;
+    private DatabaseReference chats;
     private String filter;
     private String orderByFilter;
     private int deleteImageCounter = 0;
@@ -76,6 +81,8 @@ public class DbManager {
     public List<String> listSubscribes;// список подписчиков
     public List<Observer> subscribes;
     private boolean One = false;
+    private DatabaseReference messagesDatabaseReference;
+    public List<String> MyChatUsers;
 
 
     public DbManager(Context context) {
@@ -85,6 +92,9 @@ public class DbManager {
         if (context instanceof Observer) {
             this.observer = (Observer) context;
         }
+        if (context instanceof WayToChat) {
+            this.wayToChat = (WayToChat) context;
+        }
 //        if (context instanceof Subscribers) {
 //            this.subscribesInt = (Subscribers) context;
 //        }
@@ -93,9 +103,12 @@ public class DbManager {
         mainAppClass = ((MainAppClass) context.getApplicationContext());
         mainNode = mainAppClass.getMainDbRef();
         users = mainAppClass.getUserDbRef();
+        chats = mainAppClass.getChatDbRef();
+
         usersList = new ArrayList<>();
         listSubscribes = new ArrayList<>();
         subscribes = new ArrayList<>();
+        MyChatUsers = new ArrayList<>();
 
     }
 
@@ -135,9 +148,11 @@ public class DbManager {
         mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
         readDataUpdate();// он делает readDataUpdate(MyConstans.DIF_CAT)
     }
-public void changeMyNotes(String orderBy){
-    mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
-}
+
+    public void changeMyNotes(String orderBy) {
+        mQuery = mainNode.orderByChild(orderBy).equalTo(mainAppClass.getAuth().getUid());
+    }
+
     public void getMySubscription(String orderBy) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         mQuery = users.child(currentUser.getUid()).child("subscriptions").child("userUid");
@@ -147,9 +162,10 @@ public void changeMyNotes(String orderBy){
     public void getCurrentUser(String uid) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         mQueryUser = users.child(uid);
-        if(mQueryUser!=null){
-        One=true;
-    }}
+        if (mQueryUser != null) {
+            One = true;
+        }
+    }
 
     public void getAllOwnerAds(String uid) {
         mQuery = mainNode.orderByChild(uid + "/post/uid").equalTo(uid);
@@ -505,14 +521,16 @@ public void changeMyNotes(String orderBy){
                         users.add(user);
                     }
 
-                    observer.handleEvent(users);}
+                    observer.handleEvent(users);
+                }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                 }
 //             });
             });
-      One=false;  } else {
+            One = false;
+        } else {
             users.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -536,7 +554,6 @@ public void changeMyNotes(String orderBy){
             });
         }
     }
-
 
 
     public void loadFollowers() {
@@ -599,26 +616,27 @@ public void changeMyNotes(String orderBy){
     public void readSubscription() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-        users.child(currentUser.getUid()).child("subscriptions").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (listSubscribes.size() > 0) {
-                    listSubscribes.clear();
+            users.child(currentUser.getUid()).child("subscriptions").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (listSubscribes.size() > 0) {
+                        listSubscribes.clear();
+                    }
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String uidSubc = (String) ds.child("userUid").getValue().toString();
+                        // String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
+                        listSubscribes.add(uidSubc);
+                        Log.d("MyLog", "Data sub size" + snapshot.getChildrenCount() + uidSubc);
+                    }
+                    subscribesrsInt.onDataSubcRecived(listSubscribes); // не хочет передавать нулевой
                 }
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String uidSubc = (String) ds.child("userUid").getValue().toString();
-                    // String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
-                    listSubscribes.add(uidSubc);
-                    Log.d("MyLog", "Data sub size" + snapshot.getChildrenCount() + uidSubc);
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
                 }
-                subscribesrsInt.onDataSubcRecived(listSubscribes); // не хочет передавать нулевой
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });}
+            });
+        }
 
     }
 
@@ -683,12 +701,12 @@ public void changeMyNotes(String orderBy){
         }
     }
 
-//    public boolean isSubscription(String uid) {
+    //    public boolean isSubscription(String uid) {
 //        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 //        mQuery = users.child(currentUser.getUid()).child("subscriptions");
 //        readSubscription();
 //        if (listSubscribes.size() == 0) {
-//            return false;;
+//            return false;
 //        }
 //        for(int i=0;i<listSubscribes.size();i++)
 //        {
@@ -699,4 +717,70 @@ public void changeMyNotes(String orderBy){
 //        }
 //        return false;
 //    }
-}
+    public void findOrCreateReference(String sender, String recipientUserId) {
+        Log.d("MyLog", "sender " + sender);// тут смотрю есть ли у меня такой путь если нет - создаю
+        Log.d("MyLog", "recipient " + recipientUserId);
+        String way1 = sender + "_" + recipientUserId;// тут смотрю есть ли у меня такой путь если нет - создаю
+        String way2 = recipientUserId + "_" + sender;// тут смотрю есть ли у меня такой путь если нет - создаю
+        //DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(DbManager.CHATS);
+        chats.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.child(way1).exists()) {
+                    messagesDatabaseReference = chats.child(way1);
+                    Log.d("MyLog", "mesDR " + "sender OK");
+                } else if (snapshot.child(way2).exists()) {
+                    messagesDatabaseReference = chats.child(way2);
+                    Log.d("MyLog", "mesDR " + "recip OK");
+                } else {
+                    chats.child((sender + "/" + recipientUserId).toString());
+                    messagesDatabaseReference = chats.child(sender + "_" + recipientUserId);
+                    //messagesDatabaseReference.setValue("messages");
+                    Log.d("MyLog", "mesDR " + messagesDatabaseReference);
+                }
+                wayToChat.way(messagesDatabaseReference);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+    }
+
+    public void receiveMyChatsUsers(String uid) {// тут получаю uid юзеров с которыми я имею чат, использую интерфейс subscribers что бы передать list<string> uid юзеров
+        chats.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (MyChatUsers.size() > 0) {
+                    MyChatUsers.clear();
+                }
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String way = ds.getKey().toString();
+                    String[] retval = way.split("_", 2);
+                    String sender = retval[0];
+                    String recipientUserId = retval[1];
+                    if (sender.equals(uid)) {
+                        MyChatUsers.add(recipientUserId);
+                    } else if (recipientUserId.equals(uid)) {
+                        MyChatUsers.add(sender);
+                    }
+                }
+//                if (MyChatUsers.size()== 0) {
+//                    MyChatUsers.add("empty");}
+                    subscribesrsInt.onDataSubcRecived(MyChatUsers);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+//    public DatabaseReference getMessagesDatabaseReference(String sender, String recipientUserId){
+//        findOrCreateReference(sender,recipientUserId);
+//        Log.d("MyLog", "getMess " + messagesDatabaseReference);
+//        return messagesDatabaseReference;
+//    }
+
+        });
+    }
+    }

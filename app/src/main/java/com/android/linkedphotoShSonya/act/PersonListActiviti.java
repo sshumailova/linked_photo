@@ -21,6 +21,7 @@ import com.android.linkedphotoShSonya.Adapter.Subscribers;
 import com.android.linkedphotoShSonya.Observer;
 import com.android.linkedphotoShSonya.R;
 import com.android.linkedphotoShSonya.accounthelper.AccountHelper;
+import com.android.linkedphotoShSonya.chat.ChatActivity;
 import com.android.linkedphotoShSonya.databinding.PersonListActivitiBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
 import com.android.linkedphotoShSonya.db.NewPost;
@@ -30,12 +31,9 @@ import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -69,6 +67,7 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
     private List<NewPost> arrayPost;
     public String current_cat = MyConstants.ALL_PHOTOS;
     private Subscribers subscribers;
+    private String userPhoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +99,7 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
 //            UserPhoto = i.getStringExtra("userPhoto");
 
             String a = i.getStringExtra("isSubscriber");
+            Log.d("MyLog","isSubscriber "+ a);
             if (a.equals("false")) {
                 binding.addSubscription.setVisibility(View.VISIBLE);
                 binding.removeSub.setVisibility(View.GONE);
@@ -112,6 +112,12 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
                 binding.addSubscription.setVisibility(View.GONE);
                 binding.removeSub.setVisibility(View.GONE);
             }
+//            if(a.equals("my_followers")){
+//
+//                    binding.addSubscription.setVisibility(View.VISIBLE);
+//                    binding.removeSub.setVisibility(View.GONE);
+//                }
+
 
         }
         setOnItemClickCustom();
@@ -131,6 +137,7 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
         showData();
         binding.removeSub.setOnClickListener(onClickItem());
         binding.addSubscription.setOnClickListener(onClickItem());
+        binding.bStarnChat.setOnClickListener(onClickItem());
         ///FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
@@ -263,6 +270,17 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
                 // dbManager.readSubscription();
 
             }
+            else if(view.getId()==R.id.bStarnChat){
+                Log.d("MyLog", "GoTOCHat");
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                Intent intent=new Intent(this, ChatActivity.class);
+                intent.putExtra("recipientUserId",uid);
+                String name=binding.tvEmail.toString();
+                intent.putExtra("recipientUserName", name);
+                intent.putExtra("sender",currentUser.getUid());
+                intent.putExtra("userPhoto", userPhoto);
+                startActivity(intent);
+            }
         };
     }
 
@@ -271,6 +289,7 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
         for (int i = 0; i < users.size(); i++) {
             User user = users.get(i);
             binding.tvEmail.setText(user.getName());
+            userPhoto=user.getImageId();
             Picasso.get().load(user.getImageId()).transform(new CircleTransform()).into(binding.UserPhoto);
         }
     }
