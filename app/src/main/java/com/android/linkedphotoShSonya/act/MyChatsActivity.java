@@ -82,16 +82,6 @@ public class MyChatsActivity extends AppCompatActivity implements Subscribers, O
 //
 //        });
     }
-
-    private void goToChat(int position) {
-
-        Intent intent = new Intent(MyChatsActivity.this, ChatActivity.class);
-        intent.putExtra("recipientUserId", userArrayList.get(position).getId());
-        intent.putExtra("recipientUserName", userArrayList.get(position).getName());
-        intent.putExtra("userName", userName);
-        startActivity(intent);
-    }
-
     @Override
     public void onDataSubcRecived(List<String> subcribers) {
         List<String> subsc = new ArrayList<>();

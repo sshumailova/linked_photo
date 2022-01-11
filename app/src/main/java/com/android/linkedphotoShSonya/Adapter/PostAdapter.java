@@ -8,10 +8,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.linkedphotoShSonya.comments.CommentsActivity;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.databinding.ItemAdsBinding;
 import com.android.linkedphotoShSonya.db.DbManager;
@@ -73,7 +77,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         if (NEXT_PAGE.equals(mainPostList.get(position).getUid())) {
             holder.setNextItemData();
         } else {
+            if(mainPostList.get(position).getVisibility().equals(DbManager.ACCEPTED))
             holder.setData(mainPostList.get(position));
+            else {
+                holder.setStateWaiting();
+            }
             setFavIfSelected(holder);
         }
     }
@@ -247,10 +255,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             //тут показываю данные - слушатель нажатий!
             actionIfAnonymous(newPost);
             Picasso.get().load(newPost.getImageId()).into(binding.imAds);
+            binding.imAds.setScaleType(ImageView.ScaleType.CENTER_CROP);
             binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
+            binding.tvComments.setText(String.valueOf(newPost.getCommCount()));
             binding.tvName.setText(newPost.getName());
             Picasso.get().load(newPost.getLogoUser()).into(binding.UserPhoto);
-            binding.tvDisc1.setText(newPost.getDisc());
             binding.tvDisc1.setText(newPost.getDisc());
             binding.tvTotalViews.setText(newPost.getTotal_views());
             uid = newPost.getUid();
@@ -263,14 +272,28 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
             binding.imFav.setOnClickListener(onClickItem(newPost));
             binding.NameAndLogo.setOnClickListener(onClickItem(newPost));
             binding.addSub.setOnClickListener(onClickItem(newPost));
+            binding.imComments.setOnClickListener(onClickItem(newPost));
+        }
+        public void setStateWaiting() {
+            binding.imAds.setImageResource(R.drawable.ic_fav_selected);
+            binding.imAds.setScaleType(ImageView.ScaleType.CENTER);
+            binding.tvQuantityLike.setText(R.string.hidden);
+            binding.tvComments.setText(R.string.hidden);
+           binding.tvName.setText("");
+            binding.tvDisc1.setText(R.string.moderation);
+            binding.tvTotalViews.setText(R.string.hidden);
+            itemView.setOnClickListener(v -> {
+
+               // Toast.makeText(this,R.string.post_moderation, Toast.LENGTH_SHORT).show();
+            });
+           
         }
 
         private void isItSubc() {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            if(currentUser.getUid().equals(uid)){
+            if (currentUser.getUid().equals(uid)) {
                 binding.addSub.setVisibility(View.GONE);
-            }
-           else if (subcribersList.size() == 0) {
+            } else if (subcribersList.size() == 0) {
                 binding.addSub.setVisibility(View.VISIBLE);
             } else if (subcribersList.contains(uid)) {
                 binding.addSub.setVisibility(View.GONE);
@@ -293,27 +316,38 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
                 } else if (view.getId() == R.id.addSub) {
                     addSubscription(newPost);
                 }
+                if (view.getId() == R.id.imComments) {
+                    goToCommentsActivity(newPost);
+                }
             };
         }
 
         public void addSubscription(NewPost newPost) {
             dbManager.AddSubscription(newPost.getUid());
-          //updateAdapter(getMainList());
-            dbManager.updateFieldSubcrib(getMainList(),ViewHolderData.this, newPost.getUid());
+            //updateAdapter(getMainList());
+            dbManager.updateFieldSubcrib(getMainList(), ViewHolderData.this, newPost.getUid());
             notifyDataSetChanged();
-          //  binding.addSub.setVisibility(View.GONE);
+            //  binding.addSub.setVisibility(View.GONE);
+        }
+
+        public void goToCommentsActivity(NewPost newPost) {
+            Intent intent = new Intent(context, CommentsActivity.class);
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            intent.putExtra("currentUser", currentUser.getUid());
+            intent.putExtra("post", newPost);
+
+            context.startActivity(intent);
+
         }
 
         public void UserListPhotoActivity(NewPost newPost) {
             Intent intent = new Intent(context, PersonListActiviti.class);
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            if(currentUser.getUid().equals(uid)){
-                intent.putExtra("isSubscriber","itIsCurrentUser");
-            }
-           else if (binding.addSub.getVisibility() == View.GONE) {
+            if (currentUser.getUid().equals(uid)) {
+                intent.putExtra("isSubscriber", "itIsCurrentUser");
+            } else if (binding.addSub.getVisibility() == View.GONE) {
                 intent.putExtra("isSubscriber", "true");
-            }
-           else if (binding.addSub.getVisibility() == View.VISIBLE) {
+            } else if (binding.addSub.getVisibility() == View.VISIBLE) {
                 intent.putExtra("isSubscriber", "false");
             }
 

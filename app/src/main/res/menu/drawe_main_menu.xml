@@ -33,6 +33,9 @@
         android:id="@+id/accountCatId">
 
 <menu>
+    <item android:title="@string/remove_ads"
+        android:id="@+id/id_remove_ads"
+        android:icon="@drawable/ic_baseline_remove_ads"/>
     <item android:title="@string/sing_up"
         android:id="@+id/id_sing_up"
         android:icon="@drawable/ic_sing_up"/>

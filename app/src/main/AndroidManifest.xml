@@ -15,6 +15,9 @@
         android:theme="@style/AppTheme.NoToolBar"
         tools:replace="android:theme">
         <activity
+            android:name=".comments.CommentsActivity"
+            android:exported="true" />
+        <activity
             android:name=".act.MyChatsActivity"
             android:exported="true" />
         <activity

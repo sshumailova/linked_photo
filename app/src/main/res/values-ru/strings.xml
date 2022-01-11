@@ -73,5 +73,8 @@
     <string name="remove_subscrip">Вы хотете отписаться от этого пользователя?</string>
     <string name="aboutMe">Обо мне</string>
     <string name="saveChange">Сохранить</string>
+    <string name="remove_ads">Убрать рекламу</string>
+    <string name="hidden">***</string>
+    <string name="post_moderation">Пост на модерации!</string>
 
 </resources>

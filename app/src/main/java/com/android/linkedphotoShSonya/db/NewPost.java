@@ -17,7 +17,9 @@ public class NewPost implements Serializable {
     private String logoUser;
     private String total_views;
     private long favCounter = 0;
+    private long commCount=0;
     private boolean isFav = false;
+    private String visibility="waiting";
 
     public String getImageId3() {
         return imageId3;
@@ -107,6 +109,13 @@ public class NewPost implements Serializable {
     public void setFavCounter(long favCounter) {
         this.favCounter = favCounter;
     }
+    public void setCommCounter(long commCounter){
+        this.commCount=commCounter;
+    }
+
+    public long getCommCount() {
+        return commCount;
+    }
 
     public boolean isFav() {
         return isFav;
@@ -138,5 +147,13 @@ public class NewPost implements Serializable {
 
     public void setLogoUser(String logoUser) {
         this.logoUser = logoUser;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
     }
 }

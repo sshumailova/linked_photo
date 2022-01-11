@@ -48,7 +48,7 @@ public class ChatActivity extends AppCompatActivity implements WayToChat {
     private ImageButton sendImageButton;
     private Button sendMessageButton;
     private EditText messageEditText;
-
+private DatabaseReference commentsDatabaseReference;
     private String recipientUserId;
     private String sender;
     private String recipientUserName;
@@ -133,37 +133,7 @@ public class ChatActivity extends AppCompatActivity implements WayToChat {
                 new InputFilter.LengthFilter(500)});
         sendMessageButton.setOnClickListener(onClickItem());
         sendImageButton.setOnClickListener(onClickItem());
-//        usersChildEvenListener = new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//                User user = dataSnapshot.getValue(User.class);
-//                if (user.getId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-//                    userName = user.getName();
-//                }
-//            }
 //
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//
-//            }
-//
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//
-//            }
-//
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//            }
-//        };
-        //usersDatabaseReference.addChildEventListener(usersChildEvenListener);
-
     }
 
     @Override

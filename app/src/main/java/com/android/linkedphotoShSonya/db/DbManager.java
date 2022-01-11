@@ -21,6 +21,8 @@ import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.MainAppClass;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
 import com.android.linkedphotoShSonya.chat.AwesomeMessage;
+import com.android.linkedphotoShSonya.comments.Comment;
+import com.android.linkedphotoShSonya.utils.Comments;
 import com.android.linkedphotoShSonya.utils.MyConstants;
 import com.android.linkedphotoShSonya.utils.WayToChat;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -67,6 +69,7 @@ public class DbManager {
     private DataSender dataSender;
     private Observer observer;
     private WayToChat wayToChat;
+    private Comments comments;
     private MainAppClass mainAppClass;
     private long cat_ads_counter = 0;
     String text;
@@ -94,6 +97,9 @@ public class DbManager {
         }
         if (context instanceof WayToChat) {
             this.wayToChat = (WayToChat) context;
+        }
+        if (context instanceof Comments) {
+            this.comments = (Comments) context;
         }
 //        if (context instanceof Subscribers) {
 //            this.subscribesInt = (Subscribers) context;
@@ -376,7 +382,7 @@ public class DbManager {
                         String favUid = (String) ds.child(FAv_ADS_PATh).child(uid).child(USER_FAV_ID).getValue();
                         if (newPost != null) {
                             newPost.setFavCounter(ds.child(FAv_ADS_PATh).getChildrenCount());
-
+                            newPost.setCommCounter(ds.child("comments").getChildrenCount());
                         }
                         if (favUid != null && newPost != null) {
                             newPost.setFav(true);
@@ -386,10 +392,8 @@ public class DbManager {
                     }
                     if (newPost != null && statusItem != null) {
                         newPost.setTotal_views(statusItem.totalViews);
-                        if (statusItem.visibility.equals(ACCEPTED) || newPost.getUid().equals(mainAppClass.getAuth().getUid()) || mainAppClass.isAdmin()) {
+                        newPost.setVisibility(statusItem.visibility);
                             newPostList.add(newPost);
-                        }
-
                     }
                 }
                 dataSender.onDataRecived(newPostList); //у меня до 119 урока было это!
@@ -579,6 +583,26 @@ public class DbManager {
 
     }
 
+    public void loadComments() {
+        List<Comment> commentsUSer = new ArrayList<>();
+        mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    Comment comment = ds.getValue(Comment.class);
+                    commentsUSer.add(comment);
+                }
+                comments.onCommentsLoadedd(commentsUSer);
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
     public void loadSubscription(List<String> listSubscribes) {
         List<User> usersSub = new ArrayList<>();
         for (int i = 0; i < listSubscribes.size(); i++) {
@@ -749,6 +773,16 @@ public class DbManager {
 
     }
 
+    public void createComment(Comment comment, NewPost newPost) {
+        Log.d("MyLog", "comWay " + FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH).child(newPost.getKey()).child("comments"));
+        FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH).child(newPost.getKey()).child("comments").child(comment.getTime()).setValue(comment);
+
+    }
+
+    public void wayForComment(NewPost newPost) {
+        mQuery = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH).child(newPost.getKey()).child("comments");
+    }
+
     public void receiveMyChatsUsers(String uid) {// тут получаю uid юзеров с которыми я имею чат, использую интерфейс subscribers что бы передать list<string> uid юзеров
         chats.addValueEventListener(new ValueEventListener() {
             @Override
@@ -769,8 +803,9 @@ public class DbManager {
                 }
 //                if (MyChatUsers.size()== 0) {
 //                    MyChatUsers.add("empty");}
-                    subscribesrsInt.onDataSubcRecived(MyChatUsers);
+                subscribesrsInt.onDataSubcRecived(MyChatUsers);
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -783,4 +818,4 @@ public class DbManager {
 
         });
     }
-    }
+}

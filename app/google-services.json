@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "440524007858-3bo0hdu9dul8msuijqbm8dm6dfa34saq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.linkedphotoShSonya",
+            "certificate_hash": "bde7f605ace1e42845ea57ecc9964cd2e826a80e"
+          }
+        },
+        {
           "client_id": "440524007858-oh1oavdj20kocmq7b6u5imgcdabq5lhv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

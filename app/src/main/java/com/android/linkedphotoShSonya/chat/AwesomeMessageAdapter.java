@@ -1,6 +1,7 @@
 package com.android.linkedphotoShSonya.chat;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.linkedphotoShSonya.Adapter.PostAdapter;
+import com.android.linkedphotoShSonya.MainActivity;
 import com.android.linkedphotoShSonya.R;
+import com.android.linkedphotoShSonya.act.PersonListActiviti;
+import com.android.linkedphotoShSonya.databinding.ItemAdsBinding;
 import com.android.linkedphotoShSonya.db.NewPost;
 import com.bumptech.glide.Glide;
 
@@ -27,6 +35,7 @@ public class AwesomeMessageAdapter extends ArrayAdapter<AwesomeMessage> {
         this.messages=messages;
         this.activity=context;
     }
+
 
 
     @Override

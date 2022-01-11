@@ -2,16 +2,26 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android'
 
+
 android {
+ signingConfigs{
+     release{
+         storeFile file('/home/barniley/Downloads/android/key_tes1.jks')
+         storePassword 'sonchikShum15'
+         keyAlias 'key12345'
+         keyPassword 'sonchikShum15'
+     }
+ }
     compileSdkVersion 30
     buildToolsVersion "29.0.3"
+
 
     defaultConfig {
         applicationId "com.android.linkedphotoShSonya"
         minSdkVersion 28
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -21,6 +31,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {

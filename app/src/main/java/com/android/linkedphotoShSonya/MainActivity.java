@@ -34,6 +34,7 @@ import com.android.linkedphotoShSonya.act.EditActivity;
 import com.android.linkedphotoShSonya.act.FollowersActivity;
 import com.android.linkedphotoShSonya.act.MyChatsActivity;
 import com.android.linkedphotoShSonya.act.PersonListActiviti;
+import com.android.linkedphotoShSonya.biling.BillingManager;
 import com.android.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.android.linkedphotoShSonya.databinding.MainContentBinding;
 import com.android.linkedphotoShSonya.databinding.NavHeaderBinding;
@@ -95,6 +96,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private Toolbar toolbar;
     //private ActivityResultLauncher<Intent> editLauncher;
     private ActivityResultLauncher<Intent> signInLauncher;
+    private BillingManager billingManager;
 
 
     @Override
@@ -213,6 +215,10 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private void init() {
         preferences = getSharedPreferences(MyConstants.MAIN_PREF, MODE_PRIVATE);
         setOnItemClickCustom();
+        billingManager=new BillingManager(this);
+        if(isPurchased()){
+            mainContent.adView.setVisibility(View.GONE);
+        }
         // newAdItem = findViewById(R.id.fb);
 //        drawerLayout.openDrawer(GravityCompat.START);
         mAuth = FirebaseAuth.getInstance();
@@ -406,6 +412,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         final int id_admin = R.id.id_admin;
         final int my_subscriptions = R.id.my_subscriptions;
         final int my_followers = R.id.my_followers;
+        final int id_remove_ad= R.id.id_remove_ads;
         postAdapter.isStartPage = true;
         switch (id) {
             case id_admin:
@@ -445,6 +452,9 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
             case id_sing_in:
                 signDialog.showSignDialog(R.string.sign_in, R.string.signin_button, 1);
                 //Toast.makeText(this, "Pressed id sign in", Toast.LENGTH_SHORT).show();
+                break;
+            case id_remove_ad:
+                billingManager.startConection();
                 break;
             case id_sing_out:
                 navHeader.UserPhoto.setImageResource(android.R.color.transparent);
@@ -547,7 +557,9 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         super.onPause();
         Log.d("MyLog", "OnPAuce");
     }
-
+private boolean isPurchased(){
+        return preferences.getBoolean(BillingManager.REMOVE_ADS_KEY,false);
+}
     public ActivityResultLauncher<Intent> getSignInLauncher() {
         return signInLauncher;
     }

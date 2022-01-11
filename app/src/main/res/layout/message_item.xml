@@ -5,10 +5,11 @@
     android:layout_margin="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<ImageView
-    android:id="@+id/photoImageView"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"/>
+
+    <ImageView
+        android:id="@+id/photoImageView"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
     <TextView
         android:id="@+id/textTextView"
         android:text="Text"
