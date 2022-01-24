@@ -8,26 +8,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:440524007858:android:b6265bcf11e1022b891cab",
+        "mobilesdk_app_id": "1:440524007858:android:2964c5041c2b35ae891cab",
         "android_client_info": {
-          "package_name": "com.android.linkedphotoShSonya"
+          "package_name": "com.sonya_shum.linkedphotoShSonya"
         }
       },
       "oauth_client": [
         {
-          "client_id": "440524007858-3bo0hdu9dul8msuijqbm8dm6dfa34saq.apps.googleusercontent.com",
+          "client_id": "440524007858-v80hpun7r9nikla7rqfmat66s7d25lvn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.android.linkedphotoShSonya",
-            "certificate_hash": "bde7f605ace1e42845ea57ecc9964cd2e826a80e"
-          }
-        },
-        {
-          "client_id": "440524007858-oh1oavdj20kocmq7b6u5imgcdabq5lhv.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.android.linkedphotoShSonya",
-            "certificate_hash": "21fc5946cc1df8c4f7b9446541a468bf938017d4"
+            "package_name": "com.sonya_shum.linkedphotoShSonya",
+            "certificate_hash": "47a6ed8257e302b4987382f5b78f5e65810e4557"
           }
         },
         {

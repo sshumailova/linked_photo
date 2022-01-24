@@ -30,10 +30,10 @@
         <TextView
             android:id="@+id/textComment"
             android:layout_width="302dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginStart="1dp"
             android:inputType="textMultiLine"
-            android:lines="5" />
+            android:maxLines="5"/>
     </LinearLayout>
 
 
