@@ -26,8 +26,7 @@ public class ImageAdapter extends PagerAdapter implements OnBitMapLoaded {
     private OnBitMapLoaded onBitMapLoaded;
     private ImagesManager imagesManager;
 
-
-    public ImageAdapter(Activity context) {
+     public ImageAdapter(Activity context) {
         this.context = context;
         imagesManager = new ImagesManager(context, this);
         inflater = LayoutInflater.from(context);

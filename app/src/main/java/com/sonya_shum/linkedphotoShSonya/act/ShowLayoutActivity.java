@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.sonya_shum.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.sonya_shum.linkedphotoShSonya.R;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.databinding.ShowLayoutActivityBinding;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
@@ -29,9 +30,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class ShowLayoutActivity extends AppCompatActivity {
     private ShowLayoutActivityBinding binding;
@@ -42,10 +48,15 @@ public class ShowLayoutActivity extends AppCompatActivity {
     private DbManager dbManager;
     private FirebaseAuth mAuth;
     private Context context;
-
+   @Inject
+    MainAppClass mainAppClass;
+   @Inject
+    @Named("mainDb")
+    DatabaseReference databaseReferenceMain;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((App)getApplication()).getComponent().inject(this);
         binding = ShowLayoutActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         init();
@@ -57,9 +68,10 @@ public class ShowLayoutActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mAuth = FirebaseAuth.getInstance();
+        //mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = mainAppClass.getCurrentUser();
+         //dRef = mainAppClass.getMainDbRef();
         imagesUris = new ArrayList<>();
         // tvImagesCounter=findViewById(R.id.tvImagedCounter2);
         ViewPager vp = findViewById(R.id.view_pager);
@@ -96,7 +108,8 @@ public class ShowLayoutActivity extends AppCompatActivity {
             Picasso.get().load(newPost.getLogoUser()).transform(new CircleTransform()).into(binding.UserPhoto);
             binding.tvCountryDisc.setText(newPost.getCountry());
             binding.tvCityDisk.setText(newPost.getCity());
-            getData(newPost);
+            String publishTime=getData(newPost.getTime());
+            binding.tvDate.setText(publishTime);
             if (newPost.isFav() || Objects.requireNonNull(currentUser).isAnonymous()) {
                 binding.imFav.setImageResource(R.drawable.ic_fav_selected);
                 binding.tvQuantityLike.setText(String.valueOf(newPost.getFavCounter()));
@@ -126,16 +139,16 @@ public class ShowLayoutActivity extends AppCompatActivity {
         }
     }
 
-    public void getData(NewPost newPost) {
-        String dateInMillis = newPost.getTime();
-        long time=Long.parseLong(dateInMillis);
-        SimpleDateFormat formater = new SimpleDateFormat("dd-MM-yyyy");
-        Date date = new Date(time);
-        binding.tvDate.setText(formater.format(date));
+    public String getData(String timeMillis) {
+        SimpleDateFormat formater = new SimpleDateFormat(" hh:mm dd/MM/yyyy", Locale.getDefault());
+        Calendar c=Calendar.getInstance();
+        c.setTimeInMillis(Long.parseLong(timeMillis));
+      return formater.format(c.getTime());
+
     }
 
     public void Like(View view) {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = mainAppClass.getCurrentUser();
         if (currentUser != null) {
             if (currentUser.isAnonymous()) {
                 return;
@@ -158,8 +171,8 @@ public class ShowLayoutActivity extends AppCompatActivity {
         if (mAuth.getUid() == null) {
             return;
         }
-        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
-        dRef.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).child(DbManager.USER_FAV_ID).
+//        DatabaseReference dRef = mainAppClass.getMainDbRef();
+        databaseReferenceMain.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).child(DbManager.USER_FAV_ID).
                 setValue(mAuth.getUid()).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 binding.imFav.setImageResource(R.drawable.ic_fav_selected);
@@ -174,8 +187,8 @@ public class ShowLayoutActivity extends AppCompatActivity {
         if (mAuth.getUid() == null) {
             return;
         }
-        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
-        dRef.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+//        DatabaseReference dRef = mainAppClass.getMainDbRef();;
+        databaseReferenceMain.child(newPost.getKey()).child(DbManager.FAv_ADS_PATh).child(mAuth.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull @NotNull Task<Void> task) {
                 if (task.isSuccessful()) {

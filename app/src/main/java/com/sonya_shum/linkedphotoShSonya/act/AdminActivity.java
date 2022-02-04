@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.sonya_shum.linkedphotoShSonya.Adapter.AdminAdapter;
 import com.sonya_shum.linkedphotoShSonya.Adapter.DataSender;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.databinding.ActivityAdminBinding;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
@@ -60,13 +61,16 @@ public class AdminActivity extends AppCompatActivity implements DataSender, Admi
 
     @Override
     public void onDelete(NewPost newPost) {
-        dbManager.deleteItem(newPost);
-        List<NewPost> tempList = new ArrayList<>(adapter.getCurrentList());
-        tempList.remove(newPost);
-        adapter.submitList(tempList);
-isListEmpty(tempList);
+        dbManager.deleteItem(newPost, new DbManager.ResultListener() {
+            @Override
+            public void onResult(boolean result) {
+                List<NewPost> tempList = new ArrayList<>(adapter.getCurrentList());
+                tempList.remove(newPost);
+                adapter.submitList(tempList);
+                isListEmpty(tempList);
 
-
+            }
+        });
     }
 
     private void changeAdVisibility(String visibility, NewPost newPost) {

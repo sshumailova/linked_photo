@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sonya_shum.linkedphotoShSonya.Adapter.UserAdapter;
 import com.sonya_shum.linkedphotoShSonya.R;
 import com.sonya_shum.linkedphotoShSonya.chat.ChatActivity;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -23,6 +24,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 public class UserListActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     DatabaseReference usersDatabaseReference;
@@ -32,24 +36,32 @@ public class UserListActivity extends AppCompatActivity {
     private RecyclerView userRecyclerView;
     private UserAdapter userAdapter;
     private RecyclerView.LayoutManager userLayoutManager;
+    @Inject
+    MainAppClass mainAppClass;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
+    @Inject
+    FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      ((App)getApplication()).getComponent().inject(this);
         setContentView(R.layout.activity_user_list);
         Intent intent = getIntent();
         if (intent != null) {
             userName = intent.getStringExtra(userName);
         }
         userArrayList = new ArrayList<>();
-        auth = FirebaseAuth.getInstance();
+        auth = firebaseAuth;
         attachUserDatabaseReferenceListener();
         buildRececlerView();
 
     }
 
     private void attachUserDatabaseReferenceListener() {
-        usersDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users");
+        usersDatabaseReference = databaseReferenceUser;
         if (usersChildEvenListener == null) {
             usersChildEvenListener = new ChildEventListener() {
                 @Override

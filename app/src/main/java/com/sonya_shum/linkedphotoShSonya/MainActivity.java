@@ -29,9 +29,11 @@ import com.sonya_shum.linkedphotoShSonya.act.AdminActivity;
 import com.sonya_shum.linkedphotoShSonya.act.AdsViewActivity;
 import com.sonya_shum.linkedphotoShSonya.act.EditActivity;
 import com.sonya_shum.linkedphotoShSonya.act.FollowersActivity;
+import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
 import com.sonya_shum.linkedphotoShSonya.act.MyChatsActivity;
 import com.sonya_shum.linkedphotoShSonya.act.PersonListActiviti;
 import com.sonya_shum.linkedphotoShSonya.biling.BillingManager;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.databinding.ActivityMainBinding;
 import com.sonya_shum.linkedphotoShSonya.databinding.MainContentBinding;
 import com.sonya_shum.linkedphotoShSonya.databinding.NavHeaderBinding;
@@ -57,7 +59,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
@@ -66,12 +67,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 public class MainActivity extends AdsViewActivity implements NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener, DataSender {
     private ActivityMainBinding rootBinding;
     private MainContentBinding mainContent;//класс который хранит в себе разметку
     private NavHeaderBinding navHeader;
-    private FirebaseAuth mAuth;
     private AlertDialog dialog;
     private PostAdapter.OnItemClickCustom onItemClickCustom;
     private PostAdapter postAdapter;
@@ -91,15 +94,23 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private String UserPhoto;
     private MenuItem myChats;
     private Toolbar toolbar;
-    //private ActivityResultLauncher<Intent> editLauncher;
+    private ActivityResultLauncher<Intent> editLauncher;
     private ActivityResultLauncher<Intent> signInLauncher;
     private BillingManager billingManager;
-
+    @Inject
+    MainAppClass mainAppClass;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
+    @Inject
+    FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("MyLog", "OnCreate");
         super.onCreate(savedInstanceState);
+       ((App)getApplication()).getComponent().inject(this);
+      //((App)getApplication()).getComponent().inject(this);
         rootBinding = ActivityMainBinding.inflate(getLayoutInflater());
         navHeader = NavHeaderBinding.inflate(getLayoutInflater(), rootBinding.navView, false);
         navHeader.NameAndLogo.setOnClickListener(onClickItem());
@@ -116,7 +127,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     private View.OnClickListener onClickItem() {
         return view -> {
             if (view.getId() == R.id.NameAndLogo) {
-                FirebaseUser currentUser = mAuth.getCurrentUser();
+                FirebaseUser currentUser = firebaseAuth.getCurrentUser();
                 if (currentUser != null) {
                     if (currentUser.isAnonymous()) {
                         //кароч тут надо сделать диалоговое окно
@@ -144,13 +155,13 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     }
 
-    //private  void onEditResult(){// инициализируе лаунчер и уже после  того как создастся обьявление -возвращаемся на mainActivity НУЖНО ДЛЯ НИЖНИЙ ПАНЕЛИ УРОК 120
-//editLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result -> {
-//    if(result.getData()!=null){
-//        current_cat=result.getData().getStringExtra("cat");
-//    }
-//});
-//}
+    private  void onEditResult(){// инициализируе лаунчер и уже после  того как создастся обьявление -возвращаемся на mainActivity НУЖНО ДЛЯ НИЖНИЙ ПАНЕЛИ УРОК 120
+editLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result -> {
+    if(result.getData()!=null){
+        current_cat=result.getData().getStringExtra("cat");
+    }
+});
+}
     private void resumeCat() {
         switch (current_cat) {
             case MyConstants.MY_ADS:
@@ -218,12 +229,11 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
         }
         // newAdItem = findViewById(R.id.fb);
 //        drawerLayout.openDrawer(GravityCompat.START);
-        mAuth = FirebaseAuth.getInstance();
         dbManager = new DbManager(this);
-        accountHelper = new AccountHelper(mAuth, this, dbManager);
+        accountHelper = new AccountHelper(firebaseAuth, this, dbManager);
         dbManager.addObserver(accountHelper);
         //imagesManager = new ImagesManager(this, onBitMapLoaded);
-        signDialog = new SignDialog(mAuth, this, accountHelper); //imagesManager создала что бы преедать его в sign in
+        signDialog = new SignDialog(firebaseAuth, this, accountHelper); //imagesManager создала что бы преедать его в sign in
 
         Menu menu = rootBinding.navView.getMenu();
         //dbManager.getDataFromDb("notes");
@@ -323,10 +333,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     }
 
     public void updateUI() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-        mQuery = myRef.child(dbManager.USERS);
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        mQuery = databaseReferenceUser;
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (currentUser != null) {
             if (currentUser.isAnonymous()) {
                 // newAdItem.setVisibility(View.GONE); тут сделать невидимиы
@@ -364,7 +372,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                 //navHeader.tvEmail.setText(currentUser.getEmail());
             }
 //        }
-            MAUTh = mAuth.getUid();
+            MAUTh = firebaseAuth.getUid();
             onResume();
             dbManager.isAdmin(new DbManager.ResultListener() {
                 @Override
@@ -469,8 +477,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
     }
 
     public void onClickEdit() {
-        if (mAuth.getCurrentUser() != null) {
-            if (mAuth.getCurrentUser().isEmailVerified()) {
+        if (firebaseAuth.getCurrentUser() != null) {
+            if (firebaseAuth.getCurrentUser().isEmailVerified()) {
                 Intent i = new Intent(MainActivity.this, EditActivity.class);
                 i.putExtra("userName", UserName);
                 i.putExtra("userPhoto", UserPhoto);
@@ -482,8 +490,8 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
 
     }
 
-    public FirebaseAuth getmAuth() {
-        return mAuth;
+    public FirebaseAuth getFirebaseAuth() {
+        return firebaseAuth;
     }
 
 
@@ -498,7 +506,7 @@ public class MainActivity extends AdsViewActivity implements NavigationView.OnNa
                     startActivity(intent);
                 } else if (item.getItemId() == R.id.id_my_ads) {
                     Intent intent = new Intent(MainActivity.this, PersonListActiviti.class);
-                    FirebaseUser currentUser = mAuth.getCurrentUser();
+                    FirebaseUser currentUser = firebaseAuth.getCurrentUser();
                     // String =navHeader.tvEmail.getText().toString();
                     intent.putExtra("Uid", currentUser.getUid());
                     intent.putExtra("isSubscriber", "itIsCurrentUser");

@@ -22,6 +22,7 @@ import com.sonya_shum.linkedphotoShSonya.Observer;
 import com.sonya_shum.linkedphotoShSonya.R;
 import com.sonya_shum.linkedphotoShSonya.accounthelper.AccountHelper;
 import com.sonya_shum.linkedphotoShSonya.chat.ChatActivity;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.databinding.PersonListActivitiBinding;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
@@ -40,11 +41,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 public class PersonListActiviti extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener, DataSender, Observer {
 
     private List<NewPost> newPostList;
-    private MainAppClass mainAppClass;
+   @Inject
+    MainAppClass mainAppClass;
     private Context context;
     private Query mQuery;
     private DatabaseReference mainNode;
@@ -68,10 +73,16 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
     public String current_cat = MyConstants.ALL_PHOTOS;
     private Subscribers subscribers;
     private String userPhoto;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
+    @Inject
+    FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      ((App)getApplication()).getComponent().inject(this);
         binding = PersonListActivitiBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         init();
@@ -121,9 +132,9 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
 
         }
         setOnItemClickCustom();
-        mAuth = FirebaseAuth.getInstance();
+        mAuth = firebaseAuth;
         dbManager = new DbManager(this);
-        users = FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(uid);
+        users = databaseReferenceUser.child(uid);
         dbManager.getCurrentUser(uid);
         dbManager.loadAllUsers(this);
         // dbManager.setOnSubscriptions(this);
@@ -272,7 +283,7 @@ public class PersonListActiviti extends AppCompatActivity implements NavigationV
             }
             else if(view.getId()==R.id.bStarnChat){
                 Log.d("MyLog", "GoTOCHat");
-                FirebaseUser currentUser = mAuth.getCurrentUser();
+                FirebaseUser currentUser = mainAppClass.getCurrentUser();
                 Intent intent=new Intent(this, ChatActivity.class);
                 intent.putExtra("recipientUserId",uid);
                 String name=binding.tvEmail.getText().toString();

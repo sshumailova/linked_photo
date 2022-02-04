@@ -112,9 +112,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                dbManager.deleteItem(newPost);
-                mainPostList.remove(position);
-                notifyItemRemoved(position);
+                dbManager.deleteItem(newPost, result -> {
+                    mainPostList.remove(position);
+                    notifyItemRemoved(position);
+                    if(mainPostList.size()==1){
+                        dbManager.getDataFromDb(((MainActivity) context).current_cat, "");
+                    }
+                });
+
             }
         });
         builder.show();
@@ -187,7 +192,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
     private void setFavIfSelected(ViewHolderData holder) {
         if (context instanceof MainActivity) {
-            FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+            FirebaseUser user = ((MainActivity) context).getFirebaseAuth().getCurrentUser();
             if (mainPostList.get(holder.getAdapterPosition()).isFav() || user.isAnonymous()) {
                 holder.binding.imFav.setImageResource(R.drawable.ic_fav_selected);
             } else {
@@ -358,7 +363,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
 
         public void onClickFav(NewPost newPost) {
             if (context instanceof MainActivity) {
-                FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+                FirebaseUser user = ((MainActivity) context).getFirebaseAuth().getCurrentUser();
                 if (user.isAnonymous()) {
                     return;
                 }
@@ -378,13 +383,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolderData
         private void onClickEdit(NewPost newPost) {
             Intent i = new Intent(context, EditActivity.class);
             i.putExtra(MyConstants.New_POST_INTENT, newPost);
+            i.putExtra("userName",newPost.getName());
+            i.putExtra("userPhoto",newPost.getLogoUser());
             i.putExtra(MyConstants.EDIT_STATE, true);
             context.startActivity(i);
         }
 
         private void actionIfAnonymous(NewPost newPost) {
             if (context instanceof MainActivity) {
-                FirebaseUser user = ((MainActivity) context).getmAuth().getCurrentUser();
+                FirebaseUser user = ((MainActivity) context).getFirebaseAuth().getCurrentUser();
                 if (user != null) {
                     binding.editLayout.setVisibility(newPost.getUid().equals(user.getUid()) ? View.VISIBLE : View.GONE);
                     binding.imFav.setVisibility(user.isAnonymous() ? View.VISIBLE : View.VISIBLE);

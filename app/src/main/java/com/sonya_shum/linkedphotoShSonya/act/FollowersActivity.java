@@ -15,11 +15,14 @@ import com.sonya_shum.linkedphotoShSonya.Adapter.Subscribers;
 import com.sonya_shum.linkedphotoShSonya.Adapter.UserAdapter;
 import com.sonya_shum.linkedphotoShSonya.Observer;
 import com.sonya_shum.linkedphotoShSonya.R;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.User;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 public class FollowersActivity extends AppCompatActivity implements Subscribers, Observer {
     private UserAdapter userAdapter;
@@ -35,6 +38,7 @@ public class FollowersActivity extends AppCompatActivity implements Subscribers,
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      // ((App)getApplication()).getComponent().inject(this);
         setContentView(R.layout.activity_followers);
         init();
     }

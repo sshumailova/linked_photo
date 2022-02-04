@@ -35,6 +35,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.sonya_shum.linkedphotoShSonya.MainActivity;
 import com.sonya_shum.linkedphotoShSonya.Observer;
 import com.sonya_shum.linkedphotoShSonya.R;
+import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
 import com.sonya_shum.linkedphotoShSonya.act.PersonListActiviti;
 import com.sonya_shum.linkedphotoShSonya.databinding.SignAppLayoutBinding;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
@@ -75,6 +76,7 @@ public class AccountHelper implements Observer {
     private FirebaseAuth mAuth;
     private MainActivity activity;//было MAinActivity
     private AlertDialog dialog;
+    MainAppClass mainAppClass;
     private GoogleSignInClient signInClient;
     private String temp_email;
     private String temp_password;

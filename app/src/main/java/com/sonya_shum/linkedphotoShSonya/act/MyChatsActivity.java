@@ -14,6 +14,7 @@ import com.sonya_shum.linkedphotoShSonya.Adapter.UserAdapter;
 import com.sonya_shum.linkedphotoShSonya.Observer;
 import com.sonya_shum.linkedphotoShSonya.R;
 import com.sonya_shum.linkedphotoShSonya.chat.ChatActivity;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,6 +24,8 @@ import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 public class MyChatsActivity extends AppCompatActivity implements Subscribers, Observer {
 
@@ -34,11 +37,13 @@ public class MyChatsActivity extends AppCompatActivity implements Subscribers, O
     private UserAdapter userAdapter;
     private RecyclerView.LayoutManager userLayoutManager;
     private DbManager dbManager;
-    private FirebaseAuth mAuth;
+   @Inject
+    MainAppClass mainAppClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      ((App)getApplication()).getComponent().inject(this);
         setContentView(R.layout.activity_my_chats);
         userArrayList = new ArrayList<>();
         init();
@@ -48,8 +53,7 @@ public class MyChatsActivity extends AppCompatActivity implements Subscribers, O
 
     public void init() {
 
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = mainAppClass.getCurrentUser();
         dbManager = new DbManager(this);
         dbManager.setOnSubscriptions(this);
         //currentUser.getUid()
@@ -91,7 +95,7 @@ public class MyChatsActivity extends AppCompatActivity implements Subscribers, O
         for (int i = 0; i < users.size(); i++) {
             userArrayList.add(users.get(i));
         }
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = mainAppClass.getCurrentUser();
         Log.d("MyLog", "UserAarraySize " + userArrayList.size());
         userAdapter = new UserAdapter(userArrayList);
         userAdapter.setDbManager(dbManager);

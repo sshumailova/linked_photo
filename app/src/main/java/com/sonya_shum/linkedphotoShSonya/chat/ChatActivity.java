@@ -21,6 +21,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.sonya_shum.linkedphotoShSonya.R;
+import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.utils.CircleTransform;
 import com.sonya_shum.linkedphotoShSonya.utils.WayToChat;
@@ -40,6 +42,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class ChatActivity extends AppCompatActivity implements WayToChat {
     private ListView messageListView;
@@ -68,10 +73,17 @@ private DatabaseReference commentsDatabaseReference;
     private ImageView imageRecipient;
     private String recipientName;
     private TextView recipientNameTv;
+    @Inject
+    MainAppClass mainAppClass;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat_activity);
+       ((App)getApplication()).getComponent().inject(this);
+       // ((App)getApplication()).getComponent().inject(this);
         auth = FirebaseAuth.getInstance();
         init();
     }
@@ -88,13 +100,13 @@ private DatabaseReference commentsDatabaseReference;
         }
         dbManager = new DbManager(this);
         setTitle("Chat with " + recipientUserName);
-        database = FirebaseDatabase.getInstance();
-        storage = FirebaseStorage.getInstance();
+       // database = FirebaseDatabase.getInstance();
+       // storage = FirebaseStorage.getInstance();
       // dbManager.findOrCreateReference(sender, recipientUserId);
         dbManager.findOrCreateReference(sender,recipientUserId);
         //messagesDatabaseReference= database.getReference(DbManager.CHATS);
-        usersDatabaseReference = database.getReference(DbManager.USERS);
-        chatImagesStorageRefence = storage.getReference().child("chat_images");
+        usersDatabaseReference = databaseReferenceUser;
+        chatImagesStorageRefence = mainAppClass.getStorageRefChatImages();
         progressBar = findViewById(R.id.progressBar);
         sendImageButton = findViewById(R.id.sendPhotoButton);
         sendMessageButton = findViewById(R.id.sendMessageButton);

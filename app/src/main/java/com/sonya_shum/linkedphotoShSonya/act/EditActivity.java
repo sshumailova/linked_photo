@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,10 +18,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.sonya_shum.linkedphotoShSonya.Adapter.ImageAdapter;
 import com.sonya_shum.linkedphotoShSonya.R;
 import com.sonya_shum.linkedphotoShSonya.Status.FilterManager;
 import com.sonya_shum.linkedphotoShSonya.Status.StatusItem;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.databinding.EditLayoutBinding;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
@@ -40,6 +44,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private EditLayoutBinding rootElement; //через rootElement  есть доступ ко всем элементамэкрана
@@ -61,15 +68,27 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private List<Bitmap> bitMapArrayList;
     private ImagesManager imagesManager;
     private boolean isImagesLoaded = false;
-    private MainAppClass mainAppClass;
+    @Inject
+    MainAppClass mainAppClass;
     private NewPost post;
     private String UserName;
     private String UserPhoto;
+    @Inject
+    @Named("mainDb")
+    DatabaseReference databaseReferenceMain;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    FirebaseStorage firebaseStorage;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         rootElement = EditLayoutBinding.inflate(getLayoutInflater());
+        ((App) getApplication()).getComponent().inject(this);
         setContentView(rootElement.getRoot());
         init();
         onResultLauncher();
@@ -90,7 +109,8 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void init() {
-        mainAppClass = (MainAppClass) getApplicationContext();
+        // mainAppClass = new MainAppClass();
+        // mainAppClass.onCreate();
         imagesManager = new ImagesManager(this, this);
         imagesUris = new ArrayList<>();
         bitMapArrayList = new ArrayList<>();
@@ -98,7 +118,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         pd = new ProgressDialog(this);
         rootElement.viewPager.setAdapter(imageAdapter);
         pd.setMessage("Идет загрузка...");
-        mstorageRef = mainAppClass.getFs().getReference("Images");
+        mstorageRef = firebaseStorage.getReference("Images");
         onChangePageListener();
         getMyIntent();// до 125 урока у меня этого не было увидела у него
     }
@@ -150,9 +170,12 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void getMyIntent() {
+        Log.d("MyLog", "GETINTENT " + getIntent());
         if (getIntent() != null) {
+            Log.d("MyLog", "GETINTENT ");
             Intent i = getIntent();
             UserName = i.getStringExtra("userName");
+            Log.d("MyLog", "Username " + UserName);
             UserPhoto = i.getStringExtra("userPhoto");
 
             edit_state = i.getBooleanExtra(MyConstants.EDIT_STATE, false);
@@ -205,7 +228,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private void uploadImage() {
         if (imagesUris.size() == load_image_counter) {
             publishPost();
-            finish();
+//            finish();
             return;
         }
         Bitmap bitmap = imageAdapter.getBitMapAt(load_image_counter);
@@ -267,31 +290,42 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     }
 
     private void savePost(NewPost post) {
-        String key = mainAppClass.getMainDbRef().push().getKey();
-        String key2 = mainAppClass.getUserDbRef().push().getKey();
+        String key = databaseReferenceMain.push().getKey();
+        String key2 = databaseReferenceUser.push().getKey();
         post.setKey(key);
         post.setTime(String.valueOf(System.currentTimeMillis()));
-        post.setUid(mainAppClass.getAuth().getUid());
+        post.setUid(firebaseAuth.getUid());
         post.setCat("notes");
         post.setTotal_views("0");
         post.setName(UserName);
+        Log.d("MyLog", "USerNAme " + UserName);
         post.setLogoUser(UserPhoto);
         if (key != null) {
-            mainAppClass.getMainDbRef().child(key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post);
-            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(new StatusItem());
-            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
+            Log.d("MyLog", "dataBASE" + databaseReferenceMain.child(key).toString());
+            databaseReferenceMain.child(key).child(firebaseAuth.getUid()).child("post").setValue(post);
+            databaseReferenceMain.child(key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(new StatusItem());
+            databaseReferenceMain.child(key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
                     new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            mainAppClass.getMainDbRef().child(key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false));
+                            databaseReferenceMain.child(key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false)).addOnCompleteListener(task2 -> {
+                                setActionResult();
+                            });
                         }
                     }
             );
 
         }
 
+//        Intent i = new Intent();
+//        setResult(RESULT_OK, i);
+    }
 
-        // mainAppClass.getUserDbRef().push().child("son").setValue("llll");
+    private void setActionResult() {
+        Intent i = new Intent();
+        setResult(RESULT_OK, i);
+        finish();
+
     }
 
     public void onClickSavePost(View view) {
@@ -354,7 +388,7 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
 
     private void updatePost(NewPost post) {
         this.post = post;
-        if (mainAppClass.getAuth().getUid() == null) {
+        if (firebaseAuth.getUid() == null) {
             return;
         }
         post.setKey(temp_key);
@@ -362,22 +396,25 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
         post.setUid(temp_uid);
         post.setCat(temp_cat);
         post.setTotal_views(temp_total_views);
+        post.setName(UserName);
+        post.setLogoUser(UserPhoto);
         StatusItem statusItem = new StatusItem();
         statusItem.totalViews = post.getTotal_views();
-        mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(statusItem);
-        mainAppClass.getMainDbRef().child(temp_key).child(mainAppClass.getAuth().getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
+        databaseReferenceMain.child(temp_key).child(DbManager.STATUS + "/" + DbManager.STATUS).setValue(statusItem);
+        databaseReferenceMain.child(temp_key).child(firebaseAuth.getUid()).child("post").setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
+                databaseReferenceMain.child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER1).setValue(FilterManager.fillFilter_1_2(post, true)).addOnCompleteListener(
                         new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                mainAppClass.getMainDbRef().child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false));
+                                databaseReferenceMain.child(temp_key).child(DbManager.STATUS + "/" + DbManager.FILTER2).setValue(FilterManager.fillFilter_1_2(post, false));
                             }
                         }
                 );
                 Toast.makeText(EditActivity.this, "Upload  done!! ", Toast.LENGTH_SHORT).show();
-                finish();
+                setActionResult();
+//                finish();
             }
         });
     }
@@ -410,14 +447,14 @@ public class EditActivity extends AppCompatActivity implements OnBitMapLoaded {
     private StorageReference getUpdateRef() {// возвращает место куда записываем ИЛИ перезаписываем картинку
 
         if (!uploadUri[load_image_counter].equals("empty")) { // если старая не empty, то презаписывает в страрую ссылку в новую
-            return FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_counter]);
+            return firebaseStorage.getReferenceFromUrl(uploadUri[load_image_counter]);
         } else {// тут наоброт если empty - созадаем новую картинку в storage
             return mstorageRef.child(System.currentTimeMillis() + "_image");
         }
     }
 
     private void deleteUpdateImage() {
-        StorageReference mRef = FirebaseStorage.getInstance().getReferenceFromUrl(uploadUri[load_image_counter]);
+        StorageReference mRef = mainAppClass.getFs().getReferenceFromUrl(uploadUri[load_image_counter]);
         mRef.delete().addOnCompleteListener(task -> {
             uploadUri[load_image_counter] = "empty";
 

@@ -20,7 +20,9 @@ import android.widget.EditText;
 import com.sonya_shum.linkedphotoShSonya.Adapter.UserAdapter;
 import com.sonya_shum.linkedphotoShSonya.Observer;
 import com.sonya_shum.linkedphotoShSonya.R;
+import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
 import com.sonya_shum.linkedphotoShSonya.act.PersonListActiviti;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
 import com.sonya_shum.linkedphotoShSonya.db.User;
@@ -34,6 +36,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class CommentsActivity extends AppCompatActivity implements Observer {
     private FirebaseAuth auth;
@@ -54,12 +59,19 @@ public class CommentsActivity extends AppCompatActivity implements Observer {
     private List<Comment> commentsList;
     private RecyclerView.LayoutManager commentLayoutManager;
     private ChildEventListener comentsChildEvenListener;
-
+    @Inject
+    MainAppClass mainAppClass;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    @Named("mainDb")
+    DatabaseReference databaseReferenceMain;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+     ((App)getApplication()).getComponent().inject(this);
         setContentView(R.layout.activity_comments);
-        auth = FirebaseAuth.getInstance();
+        auth = firebaseAuth;
         init();
     }
 
@@ -69,7 +81,7 @@ public class CommentsActivity extends AppCompatActivity implements Observer {
             currentUserUid = intent.getStringExtra("currentUser");
             newPost = (NewPost) intent.getSerializableExtra("post");
         }
-        commentsDbRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH).child(newPost.getKey()).child("comments");
+        commentsDbRef = databaseReferenceMain.child(newPost.getKey()).child("comments");
         dbManager = new DbManager(this);
         commentsList = new ArrayList<>();
         commentEditText = findViewById(R.id.commentEditText);
@@ -144,12 +156,12 @@ public class CommentsActivity extends AppCompatActivity implements Observer {
     private void goToActiviry(int position) {
         Intent intent = new Intent(CommentsActivity.this, PersonListActiviti.class);
         intent.putExtra("Uid", commentsList.get(position).getUidSender());
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser currentUser = mainAppClass.getCurrentUser();
         startActivity(intent);// тут еще нужна проверка подписчик ли это
     }
 
     private void attachUserDatabaseReferenceListener() {
-        comentsDatabaseReference = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH).child(newPost.getKey()).child("comments");
+        comentsDatabaseReference = databaseReferenceMain.child(newPost.getKey()).child("comments");
         if (comentsChildEvenListener == null) {
             comentsChildEvenListener = new ChildEventListener() {
                 @Override

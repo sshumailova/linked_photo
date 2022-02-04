@@ -17,7 +17,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.firebase.storage.FirebaseStorage;
 import com.sonya_shum.linkedphotoShSonya.Adapter.DataSender;
+import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.db.DbManager;
 import com.sonya_shum.linkedphotoShSonya.db.NewPost;
 import com.sonya_shum.linkedphotoShSonya.db.User;
@@ -28,7 +31,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
@@ -36,6 +38,9 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class userActivity extends AppCompatActivity implements Observer, DataSender {
     private String uid;
@@ -55,10 +60,20 @@ public class userActivity extends AppCompatActivity implements Observer, DataSen
     private boolean isChoosePhoto = false;
     private StorageReference mStorageRef;
     private Uri uploadUri;
-
+    @Inject
+    FirebaseStorage firebaseStorage;
+   @Inject
+    MainAppClass mainAppClass;
+    @Inject
+    @Named("mainDb")
+    DatabaseReference databaseReferenceMain;
+    @Inject
+    @Named("userDb")
+    DatabaseReference databaseReferenceUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((App)getApplication()).getComponent().inject(this);
         setContentView(R.layout.activity_user);
         init();
     }
@@ -69,7 +84,7 @@ public class userActivity extends AppCompatActivity implements Observer, DataSen
             uid = i.getStringExtra("Uid");
         }
 
-        users = FirebaseDatabase.getInstance().getReference(DbManager.USERS).child(uid);
+        users = databaseReferenceUser.child(uid);
         clickPhoto = false;
         login = findViewById(R.id.login);
         text = findViewById(R.id.description);
@@ -182,7 +197,7 @@ public class userActivity extends AppCompatActivity implements Observer, DataSen
 
     private void deletePreviousPhoto() {
         Log.d("MyLog","PhotoBefore "+photoBeforeChange);
-        StorageReference mRef = FirebaseStorage.getInstance().getReferenceFromUrl(photoBeforeChange);
+        StorageReference mRef = firebaseStorage.getReferenceFromUrl(photoBeforeChange);
         mRef.delete().addOnCompleteListener(task -> {
                 Log.d("MyLog", "onSuccess: deleted file");
             });
@@ -190,7 +205,7 @@ public class userActivity extends AppCompatActivity implements Observer, DataSen
 
 
     private void saveNewPhoto(Bitmap bitmap) {
-        mStorageRef = FirebaseStorage.getInstance().getReference("ImagesUserLogo");
+        mStorageRef = firebaseStorage.getReference("ImagesUserLogo");
         //bitmap = ((BitmapDrawable) binding.imageId.getDrawable()).getBitmap();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
@@ -247,16 +262,16 @@ public class userActivity extends AppCompatActivity implements Observer, DataSen
 
     public void changeDataOnDb(NewPost newPost, int listDataSize) {
         Log.d("MyLog", "ListDa" + listDataSize);
-        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference(DbManager.MAIN_ADS_PATH);
+
         String key = newPost.getKey();
-       dRef.child(key).child(uid).child("post").child("name").setValue(login.getText().toString());
+       databaseReferenceMain.child(key).child(uid).child("post").child("name").setValue(login.getText().toString());
 //        .addOnCompleteListener(task -> {
 //            if (task.isSuccessful()) {
                 Log.d("MyLog", "key" + key);
-                dRef.child(key).child(uid).child("post").child("logoUser").setValue(uploadUri.toString());
+                databaseReferenceMain.child(key).child(uid).child("post").child("logoUser").setValue(uploadUri.toString());
 //                        .addOnCompleteListener(task1 -> {
 //                    if (task1.isSuccessful()) {
-                        Log.d("MyLog", "way l" + dRef.child(key).child(uid).child("post").child("name"));
+                        Log.d("MyLog", "way l" + databaseReferenceMain.child(key).child(uid).child("post").child("name"));
                     }
 //                });
 //            }

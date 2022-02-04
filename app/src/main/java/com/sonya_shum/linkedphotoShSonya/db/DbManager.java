@@ -16,6 +16,7 @@ import com.sonya_shum.linkedphotoShSonya.R;
 import com.sonya_shum.linkedphotoShSonya.Status.StatusItem;
 import com.sonya_shum.linkedphotoShSonya.act.MainAppClass;
 import com.sonya_shum.linkedphotoShSonya.comments.Comment;
+import com.sonya_shum.linkedphotoShSonya.dagger.App;
 import com.sonya_shum.linkedphotoShSonya.utils.Comments;
 import com.sonya_shum.linkedphotoShSonya.utils.MyConstants;
 import com.sonya_shum.linkedphotoShSonya.utils.WayToChat;
@@ -37,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 public class DbManager {
     public static final String STATUS = "status";
@@ -63,7 +66,7 @@ public class DbManager {
     private Observer observer;
     private WayToChat wayToChat;
     private Comments comments;
-    private MainAppClass mainAppClass;
+private MainAppClass mainAppClass;
     private long cat_ads_counter = 0;
     String text;
     private DatabaseReference mainNode;
@@ -99,7 +102,8 @@ public class DbManager {
 //        }
         this.context = context;
         newPostList = new ArrayList<>();
-        mainAppClass = ((MainAppClass) context.getApplicationContext());
+        //((App)getApplication()).getComponent().inject(this);
+        mainAppClass =new MainAppClass();
         mainNode = mainAppClass.getMainDbRef();
         users = mainAppClass.getUserDbRef();
         chats = mainAppClass.getChatDbRef();
@@ -252,7 +256,7 @@ public class DbManager {
 
     }
 
-    public void deleteItem(final NewPost newPost) {
+    public void deleteItem(final NewPost newPost, ResultListener resultListener) {
         StorageReference sRef = null;
         switch (deleteImageCounter) {
             case 0:
@@ -261,7 +265,7 @@ public class DbManager {
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
                     deleteImageCounter++;
-                    deleteItem(newPost);
+                    deleteItem(newPost,resultListener);
                 }
                 ;
                 break;
@@ -271,7 +275,7 @@ public class DbManager {
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
                     deleteImageCounter++;
-                    deleteItem(newPost);
+                    deleteItem(newPost,resultListener);
                 }
                 ;
                 break;
@@ -280,7 +284,7 @@ public class DbManager {
                     sRef = mainAppClass.getFs().getReferenceFromUrl(newPost.getImageId3());
                 }// создаем ссылку которая указывает на нашу картинку
                 else {
-                    deleteDBItem(newPost);
+                    deleteDBItem(newPost,resultListener);
                     sRef = null;
                 }
         }
@@ -292,9 +296,9 @@ public class DbManager {
             public void onSuccess(Void unused) {
                 deleteImageCounter++;
                 if (deleteImageCounter < 3) {
-                    deleteItem(newPost);
+                    deleteItem(newPost,resultListener);
                 } else {
-                    deleteDBItem(newPost);
+                    deleteDBItem(newPost,resultListener);
                     // sRef=null;
                     deleteImageCounter = 0;
                 }
@@ -308,7 +312,7 @@ public class DbManager {
 
     }
 
-    private void deleteDBItem(NewPost newPost) {
+    private void deleteDBItem(NewPost newPost,ResultListener resultListener) {
         DatabaseReference dbRef = mainAppClass.getDb().getReference(DbManager.MAIN_ADS_PATH);
         dbRef.child(newPost.getKey()).child(STATUS).removeValue();
         if (mainAppClass.getAuth().getUid() == null) {
@@ -318,6 +322,7 @@ public class DbManager {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(context, R.string.item_deleted, Toast.LENGTH_SHORT).show();
+                resultListener.onResult(true);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -390,8 +395,8 @@ public class DbManager {
                             newPostList.add(newPost);
                     }
                 }
-                dataSender.onDataRecived(newPostList); //у меня до 119 урока было это!
-                // newPostList.clear();
+   dataSender.onDataRecived(newPostList); //у меня до 119 урока было это!
+                 //newPostList.clear();
             }
 
             @Override
